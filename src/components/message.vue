@@ -47,18 +47,15 @@
       <div class="sendbox">
         <div class="btns">
           <span @click.stop="emojiClick" class="iconfont icon-emoji"></span>
+
           <span @click="upload('img')" class="iconfont icon-tupian"></span>
-          <input style="display:none;"
-          @change="fileChange($event,'img')"
-          accept="image/jpeg,image/jpg,image/gif,image/png,image/bmp"
-          ref="picture"
-          type="file" id="picture" name="picture">
+
+          
 
           <span @click="upload('file')" class="iconfont icon-wenjian"></span>
-          <input
-          @change="fileChange($event,'file')"
-          ref="file"
-          style="display:none;" type="file" id="file" name="file">
+
+
+
         </div>
         <div class="inp">
           <div v-if="isShowEmoji && emojiList.length>0"
@@ -76,9 +73,21 @@
           </div>
         </div>
       </div>
-
-      <canvas id="canvas" style="display:none;"></canvas>
       <div class="sub" @click="sendMessage('text')">发送</div>
+      
+
+      <!-- 上传压缩相关隐藏dom -->
+      <input style="display:none;"
+          @change="fileChange($event,'img')"
+          accept="image/jpeg,image/jpg,image/gif,image/png,image/bmp"
+          ref="picture"
+          type="file" id="picture" name="picture">
+          <input
+          @change="fileChange($event,'file')"
+          ref="file"
+          style="display:none;" type="file" id="file" name="file">
+      <canvas id="canvas" style="display:none;"></canvas>
+      
     </div>
   </div>
 </template>
@@ -348,13 +357,16 @@ export default {
               })
           return;
         }
-        msg = new RongIMLib.TextMessage({ content: this.mesData, extra: this.extra});
+        msg = new RongIMLib[TextMessage]({ content: this.mesData, extra: this.extra});
       }else if(type === 'img'){
         data.extra = this.extra;
         msg = new RongIMLib.ImageMessage(data);
       }else if(type === 'file'){
         data.extra = this.extra;
         msg = new RongIMLib.FileMessage(data);
+      }else{
+        // 消息类型
+        msg = new RongIMLib[type]({data});
       }
       return new Promise((resolve,reject)=>{
         // 返回发送状态
