@@ -4,7 +4,6 @@
       <div class="headerbox">
         <span class="title">客服</span>
         <div class="btns">
-        <span @click="isShowMessageBox=false" class="small">-</span>
         <span @click="isShowMessageBox=false" class="close">×</span>
         </div>
       </div>
@@ -30,7 +29,7 @@
               <img :id="item.id" :src="item.content.content">
             </div>
           </template>
-          
+
           <template v-if="item.messageType == 'FileMessage'">
             <!-- 文件消息 -->
             <div class="filebox imgbox mes"
@@ -70,7 +69,11 @@
              :key="index" v-html="item.node.outerHTML">
              </div >
           </div>
-          <textarea v-model="mesData" placeholder="说点什么吧"></textarea>
+          <div @paste="onPaste($event)">
+          <textarea id="rongCloudTextarea"
+
+          v-model="mesData" placeholder="说点什么吧"></textarea>
+          </div>
         </div>
       </div>
 
@@ -94,6 +97,7 @@ export default {
       isShowEmoji: false,
       userId: '',
       imgMaxSize: 500, // 图片大小
+      extra:'111',   //消息自定义字段内容
     };
   },
   props: {
@@ -105,6 +109,9 @@ export default {
       type: String,
       default: () => '001',
     },
+  },
+  created(){
+    
   },
   mounted() {
     // this.init()
@@ -142,7 +149,13 @@ export default {
         this.pushList(res.data);
       }
     },
+    onPaste(e){
+      let clipboardData = e.clipboardData || e.originalEvent.clipboardData;
+      console.log(clipboardData) 
+    },
     init() {
+      // 绑定粘贴事件 粘贴截图
+      
       // getTokenByRongim();
       if (this.params && this.params.appkey && this.params.token) {
         this.rongInit(this.params, this.addPromptInfo);
@@ -313,7 +326,8 @@ export default {
     },
     
 
-    sendMessage(type,data){
+    sendMessage(type,data,extra){
+
       // 发送信息
       //type  text 文本消息 img 图片消息 file 文件消息
       let oThis = this;
@@ -322,6 +336,9 @@ export default {
       let conversationType = RongIMLib.ConversationType.PRIVATE; // 单聊, 其他会话选择相应的消息类型即可其他会话选择相应的消息类型即可
       let targetId = this.targetId;  // 目标 Id
       let msg = '';
+      if(extra){
+        this.extra = extra;
+      }
       if(type === 'text'){
         // 发送文本消息
         if(!this.mesData){
@@ -331,10 +348,12 @@ export default {
               })
           return;
         }
-        msg = new RongIMLib.TextMessage({ content: this.mesData, extra: ''});
+        msg = new RongIMLib.TextMessage({ content: this.mesData, extra: this.extra});
       }else if(type === 'img'){
+        data.extra = this.extra;
         msg = new RongIMLib.ImageMessage(data);
       }else if(type === 'file'){
+        data.extra = this.extra;
         msg = new RongIMLib.FileMessage(data);
       }
       return new Promise((resolve,reject)=>{
@@ -484,14 +503,12 @@ export default {
   display: inline-block;
 }
 .messagebox{
-  position: fixed;
+  position: absolute;
   bottom: 0;
   right: 0;
   background: #fff;
   width: 100%;
   height: 100%;
-  max-height: 500px;
-  max-width: 500px;
   box-shadow: 0 0 10px 0 #ccc;
   z-index: 9999;
 }

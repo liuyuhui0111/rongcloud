@@ -34,8 +34,9 @@
     <div class="rong-show-box">
       <h3>初始化以及消息接收:</h3>
     </div>
+    <div class="iframe-box">
     <message ref="message1" :params="params" :targetId="targetId"></message>
-
+    </div>
 
   </div>
 </template>
@@ -52,7 +53,7 @@ export default {
     return {
       // OA2LMom6eh4yO54ocyIAAnu4IalNLTguBim2CTjn4e34UNHhvR3lkMaXLj5yBngBWXTiCIyduk8=
       // NJg/IXsoY3sQNALYyJngIQdm41ql470fWXNt1SMYMf/BUZ/zIIhgzVHaJvLyo150OU7uh01wkqeUJU0pAMr8Qg==
-      //ZRKvopltKvtz1Ueqp5Jk3RuqK+4nGFDGLN4mmc6ePN30HV4wUNiXczEOAeMLh4y/Ra3C92d9h5oLOE0XFf0seg==
+      // ZRKvopltKvtz1Ueqp5Jk3RuqK+4nGFDGLN4mmc6ePN30HV4wUNiXczEOAeMLh4y/Ra3C92d9h5oLOE0XFf0seg==
       params: {
         appkey: 'sfci50a7s3uzi',
         token: 'NJg/IXsoY3sQNALYyJngIQdm41ql470fWXNt1SMYMf/BUZ/zIIhgzVHaJvLyo150OU7uh01wkqeUJU0pAMr8Qg==',
@@ -76,3 +77,12 @@ export default {
 };
 /* eslint-enable */
 </script>
+<style>
+  .iframe-box{
+    position: fixed;
+    width: 500px;
+    height: 500px;
+    right: 0;
+    bottom: 0;
+  }
+</style>

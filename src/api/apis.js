@@ -37,7 +37,7 @@ export function getToken(params) {
   const url = '/course_authentication/oauth/token';
   // // 获取token 从本地获取上一次REDIRECT_URI
   const formData = {
-    CLIENT_ID: COMMON_ENV.CLIENT_ID, // 为COMMON_ENV.CLIENT_ID:secret，分配一个即可
+    client_id: COMMON_ENV.CLIENT_ID, // 为COMMON_ENV.CLIENT_ID:secret，分配一个即可
     grant_type: 'authorization_code', // 固定取值authorization_code
     redirect_uri: window.localStorage.getItem('REDIRECT_URI'), // 重定向地址,跟登录重定向地址保持一致
     code: params.code, // 登录成功后，重定向回来的页面url中获取
