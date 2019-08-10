@@ -11,7 +11,7 @@
       <div id="meslist" class="meslist common-scroll-bar">
         <div v-for="(item,index) in meslist"
         class="item"
-        :class="{on:item.senderUserId==userId || 
+        :class="{on:item.senderUserId==userId ||
         item.senderUserId == getExtraByType(item.content.extra,'userId')}"
         :key="index"
         :ref="index">
@@ -54,6 +54,8 @@
 
           <span @click="upload('file')" class="iconfont icon-wenjian"></span>
 
+          <span @click="initGroupFn('group1')" class="iconfont icon-wenjian"></span>
+
 
         </div>
         <div class="inp">
@@ -89,7 +91,9 @@
   </div>
 </template>
 <script>
-import {rongInit,getemojiList,emojiToHtml,sendMessage} from './js/init'
+import {
+  rongInit, getemojiList, emojiToHtml, sendMessage, initGroup,
+} from './js/init';
 /*eslint-disable*/ 
 export default {
   name: 'message',
@@ -102,7 +106,6 @@ export default {
       emojiList: [],
       isShowMessageBox: false,
       isShowEmoji: false,
-      userId: '',
       imgMaxSize: 500, // 图片大小
       targetIdList:[],
       messageData:{
@@ -110,7 +113,6 @@ export default {
           content:'',
           messageName:'',
           extra:{
-            userId:'',
           },
         }
       }
@@ -131,6 +133,10 @@ export default {
     this.targetIdList=[this.targetId];
   },
   methods: {
+    async initGroupFn(chatRoomId,type){
+      let res = await initGroup(chatRoomId,type);
+      console.log(res);
+    },
     async sendMessageFn(messageName){
       // 发送消息
       if(!messageName){
@@ -184,8 +190,7 @@ export default {
         this.pushList(res.data);
       }else if(res.code === '0000'){
         // 拿到userid
-        this.userId = res.data;
-        this.setExtraByType('userId',res.data)
+        this.setUserId(res.data)
       }
     },
     init() {
@@ -199,6 +204,11 @@ export default {
     },
     imgClick(item){
       console.log(item,'点击图片消息');
+      if(item.content.messageName === 'ImageMessage'){
+        window.open(item.content.imageUri,'_blank');
+      }else{
+        window.open(item.content.fileUri,'_blank');
+      }
     },
     dispatch(el, type) {
       let t = type || 'click';
@@ -206,6 +216,51 @@ export default {
       event.initMouseEvent('click', false, false);
       el.dispatchEvent(event);
     },
+    
+    uploadImg(content){
+      // 上传图片 content base64
+      this.setExtraByType('index',this.meslist.length);
+        this.pushList({
+          content: {
+            messageName: 'ImageMessage',
+            content: content,
+            imageUri: '',
+          },
+          uploading: true,
+          messageType: 'ImageMessage',
+          senderUserId: this.userId,
+        });
+        // 发送图片消息
+        this.messageData.content.content = content;
+        this.messageData.content.imageUri = '//www.baidu.com/img/bd_logo1.png?qua=high';
+        this.sendMessageFn('ImageMessage');
+      
+    },
+    async uploadFile(file){
+      let content = {
+        name:file.name,
+        size:file.size,
+        type:file.type,
+        extra:this.messageData.content.extra,
+        fileUrl: '//cdn.ronghub.com/RongIMLib-2.5.0.min.js'
+      }
+      this.setExtraByType('index',this.meslist.length);
+      let message = {
+        content: content,
+        uploading: true,
+        messageType: 'FileMessage',
+        senderUserId: this.userId,
+      }
+
+      this.pushList(message);
+
+      this.messageData.content = content;
+      console.log(this.messageData.content);
+
+      this.sendMessageFn('FileMessage');
+
+    },
+
     finish(message) {
       let index = parseInt(this.getExtraByType(message.content.extra,'index'),10);
       this.meslist[index] = { ...message };
@@ -235,26 +290,6 @@ export default {
         this.uploadFile(file);
       }
       ev.srcElement.value = '';
-    },
-    async uploadFile(file){
-      let content = {
-        name:file.name,
-        size:file.size,
-        type:file.type,
-        fileUrl: '//cdn.ronghub.com/RongIMLib-2.5.0.min.js'
-      }
-      let imgIndex = this.meslist.length;
-      let message = {
-        content: content,
-        uploading: true,
-        messageType: 'FileMessage',
-        senderUserId: this.userId,
-      }
-      this.pushList(message)
-
-      let res = await this.sendMessage('file', content);
-
-
     },
     fileToImage(file) {
       let oThis = this;
@@ -291,29 +326,9 @@ export default {
           };
         }
         
-        
-        
       };
     },
-    uploadImg(content){
-      // 上传图片 content base64
-      this.setExtraByType('index',this.meslist.length);
-        this.pushList({
-          content: {
-            messageName: 'ImageMessage',
-            content: content,
-            imageUri: '',
-          },
-          uploading: true,
-          messageType: 'ImageMessage',
-          senderUserId: this.userId,
-        });
-        // 发送图片消息
-        this.messageData.content.content = content;
-        this.messageData.content.imageUri = '//www.baidu.com/img/bd_logo1.png?qua=high';
-        this.sendMessageFn('ImageMessage');
-      
-    },
+    
     upload(type) {
       if (type === 'img') {
         // 上传图片

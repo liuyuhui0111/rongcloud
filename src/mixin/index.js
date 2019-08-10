@@ -17,6 +17,7 @@ export default {
       computed: {
         ...mapGetters([
           'token', // 登录token
+          'userId', // 登录token
         ]),
       },
       methods: {
@@ -52,6 +53,7 @@ export default {
 
         ...mapMutations([
           'setToken',
+          'setUserId',
         ]),
       },
 
