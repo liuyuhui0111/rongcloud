@@ -11,17 +11,18 @@
       <div id="meslist" class="meslist common-scroll-bar">
         <div v-for="(item,index) in meslist"
         class="item"
-        :class="{on:item.senderUserId==userId}"
+        :class="{on:item.senderUserId==userId || 
+        item.senderUserId == getExtraByType(item.content.extra,'userId')}"
         :key="index"
         :ref="index">
-          <template v-if="item.messageType == 'TextMessage'">
+          <template v-if="item.content.messageName == 'TextMessage'">
           <!-- 文本消息 -->
             <div v-html="emojiToHtml(item.content.content)" class="mes">
             </div>
           </template>
 
 
-          <template v-if="item.messageType == 'ImageMessage'">
+          <template v-if="item.content.messageName == 'ImageMessage'">
             <!-- 图文消息 -->
             <div class="imgbox mes"
             @click="imgClick(item)"
@@ -30,7 +31,7 @@
             </div>
           </template>
 
-          <template v-if="item.messageType == 'FileMessage'">
+          <template v-if="item.content.messageName == 'FileMessage'">
             <!-- 文件消息 -->
             <div class="filebox imgbox mes"
             @click="imgClick(item)"
@@ -50,10 +51,8 @@
 
           <span @click="upload('img')" class="iconfont icon-tupian"></span>
 
-          
 
           <span @click="upload('file')" class="iconfont icon-wenjian"></span>
-
 
 
         </div>
@@ -66,15 +65,13 @@
              :key="index" v-html="item.node.outerHTML">
              </div >
           </div>
-          <div @paste="onPaste($event)">
           <textarea id="rongCloudTextarea"
 
           v-model="mesData" placeholder="说点什么吧"></textarea>
-          </div>
         </div>
       </div>
-      <div class="sub" @click="sendMessage('text')">发送</div>
-      
+      <div class="sub" @click="sendMessageFn('TextMessage')">发送</div>
+
 
       <!-- 上传压缩相关隐藏dom -->
       <input style="display:none;"
@@ -87,11 +84,12 @@
           ref="file"
           style="display:none;" type="file" id="file" name="file">
       <canvas id="canvas" style="display:none;"></canvas>
-      
+
     </div>
   </div>
 </template>
 <script>
+import {rongInit,getemojiList,emojiToHtml,sendMessage} from './js/init'
 /*eslint-disable*/ 
 export default {
   name: 'message',
@@ -106,7 +104,16 @@ export default {
       isShowEmoji: false,
       userId: '',
       imgMaxSize: 500, // 图片大小
-      extra:'111',   //消息自定义字段内容
+      targetIdList:[],
+      messageData:{
+        content:{
+          content:'',
+          messageName:'',
+          extra:{
+            userId:'',
+          },
+        }
+      }
     };
   },
   props: {
@@ -119,27 +126,48 @@ export default {
       default: () => '001',
     },
   },
-  created(){
-    
-  },
   mounted() {
     // this.init()
+    this.targetIdList=[this.targetId];
   },
   methods: {
-    pushList(data) {
-      if (data.messageType === 'TextMessage') {
-        // 文本消息
-      } else if (data.messageType === 'ImageMessage') {
-        // 图片消息
-      }else if (data.messageType === 'FileMessage') {
-        // 文件消息
+    async sendMessageFn(messageName){
+      // 发送消息
+      if(!messageName){
+        // 如果没有消息类型 返回
+        return false;
       }
+      if(messageName === 'TextMessage'){
+        // 文本消息
+        this.messageData.content.content = this.mesData;
+      }
+      this.messageData.content.messageName = messageName;
+      let res = await sendMessage(this.targetIdList,this.messageData);
+      this.sendMesResult(res);
+     
+    },
+    sendMesResult(res){
+       console.log(res);
+      if(res.code === '0000'){
+        // 发送成功
+        if(res.message.content.messageName === 'TextMessage'){
+          this.mesData = '';
+          this.pushList(res.message);
+        }else{
+          this.finish(res.message);
+        }
+      }
+    },
+    pushList(data) {
       this.meslist.push({
         id: this.meslist.length,
         ...data,
       });
       console.log(this.meslist);
       this.scrollEnd();
+    },
+    emojiToHtml(mes){
+      return emojiToHtml(mes)
     },
     scrollEnd(){
       // 滚动到底部
@@ -152,22 +180,19 @@ export default {
     addPromptInfo(res) {
       console.log(res);
       if (res.code === '9999') {
-        // 收到消息{content: "111"  内容
-        // extra: ""
-        // messageName: "TextMessage"}
+        // 收到消息
         this.pushList(res.data);
+      }else if(res.code === '0000'){
+        // 拿到userid
+        this.userId = res.data;
+        this.setExtraByType('userId',res.data)
       }
     },
-    onPaste(e){
-      let clipboardData = e.clipboardData || e.originalEvent.clipboardData;
-      console.log(clipboardData) 
-    },
     init() {
-      // 绑定粘贴事件 粘贴截图
-      
-      // getTokenByRongim();
+
       if (this.params && this.params.appkey && this.params.token) {
-        this.rongInit(this.params, this.addPromptInfo);
+        this.isShowMessageBox = true;
+        rongInit(this.params, this.addPromptInfo);
       } else {
         throw new Error('appkey 和 token 不能为空');
       }
@@ -181,7 +206,8 @@ export default {
       event.initMouseEvent('click', false, false);
       el.dispatchEvent(event);
     },
-    finish(index, message) {
+    finish(message) {
+      let index = parseInt(this.getExtraByType(message.content.extra,'index'),10);
       this.meslist[index] = { ...message };
       let data = {
         uploading: false,
@@ -227,9 +253,6 @@ export default {
       this.pushList(message)
 
       let res = await this.sendMessage('file', content);
-      if (res.code === '0000') {
-          this.finish(imgIndex, res.message);
-        }
 
 
     },
@@ -272,9 +295,9 @@ export default {
         
       };
     },
-    async uploadImg(content){
+    uploadImg(content){
       // 上传图片 content base64
-      let imgIndex = this.meslist.length;
+      this.setExtraByType('index',this.meslist.length);
         this.pushList({
           content: {
             messageName: 'ImageMessage',
@@ -285,13 +308,11 @@ export default {
           messageType: 'ImageMessage',
           senderUserId: this.userId,
         });
-        let imageUri = '//www.baidu.com/img/bd_logo1.png?qua=high';
-        let imgData = { content: content, imageUri };
-
-        let res = await this.sendMessage('img', imgData);
-        if (res.code === '0000') {
-          this.finish(imgIndex, res.message);
-        }
+        // 发送图片消息
+        this.messageData.content.content = content;
+        this.messageData.content.imageUri = '//www.baidu.com/img/bd_logo1.png?qua=high';
+        this.sendMessageFn('ImageMessage');
+      
     },
     upload(type) {
       if (type === 'img') {
@@ -304,201 +325,34 @@ export default {
       }
     },
     /*eslint-disable*/ 
-    initEmoji(){
-      let RongIMLib = window.RongIMLib;
-       // 直接初始化
-      RongIMLib.RongIMEmoji.init();
-
-      // 通过配置初始化
-      // 表情信息可参考 http://unicode.org/emoji/charts/full-emoji-list.html
-      var config = {
-          size: 24, // 大小, 默认 24, 建议15 - 55
-      };
-      RongIMLib.RongIMEmoji.init(config);
+    getExtraByType(extra,type){
+      if(typeof(extra) !== 'object'){
+        return JSON.parse(extra)[type];
+      }else{
+        return extra[type];
+      }
     },
-    emojiToHtml(message){
-      let RongIMEmoji = window.RongIMLib.RongIMEmoji;
-      return RongIMEmoji.symbolToHTML(message);
+    setExtraByType(type,val){
+      if(typeof(this.messageData.content.extra) !== 'object'){
+        this.messageData.content.extra = JSON.parse(this.messageData.content.extra);
+        
+      }
+      this.messageData.content.extra[type] = val;
     },
+    
     emojiClickItem(item){
       this.mesData = this.mesData + item.symbol;
     },
     emojiClick(){
-      let RongIMEmoji = window.RongIMLib.RongIMEmoji;
       // 初始化 emoji
       this.isShowEmoji = !this.isShowEmoji;
       if(this.emojiList.length>0){
         return;
       }
-      
-      this.emojiList = RongIMEmoji.list;
+      this.emojiList = getemojiList();
     },
     
 
-    sendMessage(type,data,extra){
-
-      // 发送信息
-      //type  text 文本消息 img 图片消息 file 文件消息
-      let oThis = this;
-      let RongIMLib = window.RongIMLib;
-      let RongIMClient = window.RongIMLib.RongIMClient;
-      let conversationType = RongIMLib.ConversationType.PRIVATE; // 单聊, 其他会话选择相应的消息类型即可其他会话选择相应的消息类型即可
-      let targetId = this.targetId;  // 目标 Id
-      let msg = '';
-      if(extra){
-        this.extra = extra;
-      }
-      if(type === 'text'){
-        // 发送文本消息
-        if(!this.mesData){
-          this.$message({
-                message: '没有输入消息',
-                type: 'warning'
-              })
-          return;
-        }
-        msg = new RongIMLib[TextMessage]({ content: this.mesData, extra: this.extra});
-      }else if(type === 'img'){
-        data.extra = this.extra;
-        msg = new RongIMLib.ImageMessage(data);
-      }else if(type === 'file'){
-        data.extra = this.extra;
-        msg = new RongIMLib.FileMessage(data);
-      }else{
-        // 消息类型
-        msg = new RongIMLib[type]({data});
-      }
-      return new Promise((resolve,reject)=>{
-        // 返回发送状态
-
-      
-      if(!(RongIMClient && RongIMClient._instance)){
-        resolve({code:'-9999',message:'没有初始化'})
-        this.init();
-        return;
-      } else {
-      RongIMClient.getInstance().sendMessage(conversationType, targetId, msg, {
-        onSuccess: function (message) {
-          // message 为发送的消息对象并且包含服务器返回的消息唯一 id 和发送消息时间戳
-          console.log('发送消息成功',message);
-          if(type === 'text'){
-            oThis.pushList(message);
-            oThis.mesData = '';
-          }else if(type === 'img'){
-            
-          }
-          resolve({code:'0000',message})
-          
-        },
-        onError: function (errorCode) {
-          resolve({code:'-9999',message:errorCode})
-          console.log('发送文本消息失败', errorCode);
-        }
-      });
-    }
-
-    });
-
-    }, 
-
-
-
-    rongInit(params,addPromptInfo){
-    // 容联初始化
-      let RongIMLib = window.RongIMLib;
-      let Protobuf = window.Protobuf;
-      let RongIMClient = window.RongIMLib.RongIMClient;
-      let { appkey } = params;
-      let { token } = params;
-      let { navi } = params;
-      let oThis = this;
-      let config = {
-        protobuf: Protobuf,
-      };
-      if (navi) {
-        config.navi = navi;
-      }
-      if(RongIMClient && RongIMClient._instance){
-        this.isShowMessageBox = true;
-      }
-      // 初始化emoji
-      this.initEmoji();
-
-      RongIMClient.init(appkey, null, config);
-      RongIMClient.setConnectionStatusListener({
-        onChanged(status) {
-          switch (status) {
-            case RongIMLib.ConnectionStatus.CONNECTED:
-            case 0:
-              console.log('连接成功');
-              addPromptInfo({code:'0000',message:'连接成功'})
-              break;
-
-            case RongIMLib.ConnectionStatus.CONNECTING:
-            case 1:
-              console.log('连接中');
-              addPromptInfo({code:status,message:''});
-              break;
-
-            case RongIMLib.ConnectionStatus.DISCONNECTED:
-            case 2:
-              console.log('当前用户主动断开链接');
-              addPromptInfo({code:status,message:''});
-              break;
-
-            case RongIMLib.ConnectionStatus.NETWORK_UNAVAILABLE:
-            case 3:
-              console.log('网络不可用');
-              addPromptInfo({code:status,message:''});
-              break;
-
-            case RongIMLib.ConnectionStatus.CONNECTION_CLOSED:
-            case 4:
-              console.log('未知原因，连接关闭');
-              addPromptInfo({code:status,message:''});
-              break;
-
-            case RongIMLib.ConnectionStatus.KICKED_OFFLINE_BY_OTHER_CLIENT:
-            case 6:
-              console.log('用户账户在其他设备登录，本机会被踢掉线');
-              addPromptInfo({code:status,message:''});
-              break;
-
-            case RongIMLib.ConnectionStatus.DOMAIN_INCORRECT:
-            case 12:
-              console.log('当前运行域名错误，请检查安全域名配置');
-              addPromptInfo({code:status,message:''});
-              break;
-            default:
-              console.log('服务器返回错误');
-              addPromptInfo({code:status,message:''});
-          }
-        },
-      });
-
-
-      RongIMClient.setOnReceiveMessageListener({
-        // 接收到的消息
-        onReceived(message) {
-          console.log('接收消息');
-          addPromptInfo({code:'9999',data:message});
-        },
-      });
-      RongIMClient.connect(token, {
-        onSuccess(userId) {
-          oThis.isShowMessageBox =true;
-          oThis.userId = userId;
-          addPromptInfo({code:'9998',data:userId});
-        },
-        onTokenIncorrect() {
-          addPromptInfo({code:'0002',data:'token无效'});
-        },
-        onError(errorCode) {
-          addPromptInfo(errorCode);
-        },
-      }, null);
-
-    },
   }
 }
 </script>

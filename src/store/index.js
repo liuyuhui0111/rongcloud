@@ -13,6 +13,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
 	state: {
 		token:getTokenFn() || '',		//token
+		userId:'',
 	},
 	getters: {},
 	actions: {},
@@ -22,6 +23,10 @@ export default new Vuex.Store({
 	  	//如果token不存在 默认清空token
 	  	setTokenFn(token);
 	    state.token = token;
+	  },
+	  setUserId(state,userId) {
+	  	state.userId = userId;
+	  	window.sessionStorage.setItem('userId',userId);
 	  },
 	},
   modules,
