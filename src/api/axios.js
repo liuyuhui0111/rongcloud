@@ -10,38 +10,31 @@ const axios = Axios.create({
   withCredentials: false, // 跨域请求时，允许其他域设置自身站点下的cookie
   cache: false,
 });
+// axios.defaults.headers['content-type'] = 'application/x-www-form-urlencoded';
+// axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 
 let COMMON_LOADING = null;
 let requestList = [];
+
 /* eslint-disable */
 /**
       * 全局请求拦截器
 */
 axios.interceptors.request.use(
     (config) => {
-        if(process.env.NODE_ENV === 'development'){
-          config.headers.httpHost = process.env.VUE_APP_HOST;
-        }
-        // config.headers.Authorization = store.getters.token || '';
-        if(!config.isHideLoading){
-          // 如果不为true 请求提示loadding
+        // if(!config.noBaseUrl){
+        //   // 如果noBaseUrl不为真  拼接baseUrl
+        //   config.url = BASE_URL + config.url;
+        // }
+        config.headers.Authorization = store.getters.token ? 'Bearer '+store.getters.token : 'Bearer';
+        // config.headers.Authorization = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlIjoibWFkZSBieSBoZWF2ZW4iLCJ1c2VyX25hbWUiOiIxODUwMDM2OTE3NiIsInNjb3BlIjpbInNlcnZlciJdLCJ1c2VyVHlwZSI6IkMiLCJleHAiOjE1NjUzNTY4MDIsInVzZXJJZCI6MTgsImF1dGhvcml0aWVzIjpbIlJPTEVfVVNFUiJdLCJqdGkiOiI2MmE2ZDQ4NC1iNjE5LTRhNzgtODJkNi05ZTFlMGUwYmUwYjQiLCJjbGllbnRfaWQiOiJmYXRjIn0.bXLegVDQTYE1WgCN7u2_47y5-BsbfBi1tUWT1gq6V_A';
+        config.headers.httpHost = window.location.href || '';
+
+        if(config.isLoading){
+          // 如果为true 请求提示loadding
           requestList.push(config.url);
           if(!COMMON_LOADING){
-            COMMON_LOADING = true;
-            Vue.prototype.$Spin.show({
-                    render: (h) => {
-                        return h('div', [
-                            h('Icon', {
-                                'class': 'demo-spin-icon-load',
-                                props: {
-                                    type: 'ios-loading',
-                                    size: 18
-                                }
-                            }),
-                            h('div', 'Loading')
-                        ])
-                    }
-                });
+            COMMON_LOADING = Vue.prototype.$loading();
           }
         }
         // 添加headers "application/x-www-form-urlencoded"
@@ -64,9 +57,17 @@ axios.interceptors.request.use(
 
         return config;
     }, (error) => {
-        if (process.env.NODE_ENV === 'development') {
+         if (process.env.NODE_ENV === 'development') {
+              Vue.prototype.$$message({
+                message: error,
+                type: 'warning'
+              });
             return Promise.reject(error)
         }else{
+              Vue.prototype.$$message({
+                message: '请求出错，请稍后再试',
+                type: 'warning'
+              });
             return Promise.reject('请求出错，请稍后再试')
         }
     },
@@ -78,23 +79,22 @@ axios.interceptors.request.use(
 axios.interceptors.response.use(
     (response) => {
             if(COMMON_LOADING){
-              
+
               requestList.forEach((item,index)=>{
                 if(item === response.config.url){
                   requestList.splice(index,1);
                 }
               })
               if(requestList.length<1){
-                Vue.prototype.$Spin.hide();
+                COMMON_LOADING.close();
                 COMMON_LOADING = null;
               }
-              
+
             }
             // console.log('token::::::::',store.getters.token,'code::::::::',response.data.code)
-            if(response.data.code === '0002' && store.getters.token){
+            if(response.data.code === '1058' && store.getters.token){
               // 登录过期
-
-              // Vue.prototype.$message({
+              // Vue.prototype.$$message({
               //   message: '登录状态过期，请重新登录',
               //   type: 'warning'
               // });
@@ -103,23 +103,35 @@ axios.interceptors.response.use(
             return response;
     },
     (error) => {
-          if(COMMON_LOADING){
+          if(COMMON_LOADING && error.config && error.config.url){
               requestList.forEach((item,index)=>{
                 if(item === error.config.url){
                   requestList.splice(index,1);
                 }
               })
               if(requestList.length<1){
-                Vue.prototype.$Spin.hide();
+                COMMON_LOADING.close();
                 COMMON_LOADING = null;
               }
-            }
+          }else{
+            COMMON_LOADING = null;
+            requestList=[];
+          }
         if (process.env.NODE_ENV === 'development') {
-          return Promise.reject(error);
+              Vue.prototype.$$message({
+                message: error,
+                type: 'warning'
+              });
+            return Promise.reject(error)
         }else{
-          return Promise.reject('请求出错，请稍后再试');
+              Vue.prototype.$$message({
+                message: '请求出错，请稍后再试',
+                type: 'warning'
+              });
+            return Promise.reject('请求出错，请稍后再试')
         }
         
+
     },
 );
 /* eslint-enable */

@@ -97,6 +97,21 @@ function setTokenFn(token) {
   }
 }
 
+function getScrollTop() {
+  // 获取当前滚动条高度
+  return document.documentElement.scrollTop || document.body.scrollTop;
+}
+
+function setScrollTop(top) {
+  // 设置当前滚动条高度
+  if (document.documentElement) {
+    document.documentElement.scrollTop = top;
+    document.body.scrollTop = top;
+  } else {
+    document.body.scrollTop = top;
+  }
+}
+
 export {
   setCookie,
   getCookie,
@@ -105,4 +120,6 @@ export {
   replaceCode,
   getTokenFn,
   setTokenFn,
+  setScrollTop,
+  getScrollTop,
 };

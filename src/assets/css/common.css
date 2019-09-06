@@ -12,7 +12,7 @@ padding:0;
 body {
 background-color:#FFFFFF;
 color:#666666;
-font-family:Helvetica,Arial,sans-serif;
+font-family:"PingFangSC-Regular",Helvetica,Arial,sans-serif;
 font-size:12px;
 padding:0;
 text-align:left;
@@ -104,9 +104,6 @@ a:hover {
 .clear { *zoom:1; }
 
 /*设置默认字体*/
-body{
-	font-family: 'PingFangSC-Medium','Avenir', Helvetica, Arial, sans-serif;
-}
 input,textarea{
   color: #444;
   font-size: 14px;
@@ -179,13 +176,46 @@ background: linear-gradient(to right, transparent, #fff 55%);
 }
 
 /*向下三角*/
-.icon-triangle{
+.icon-triangle-top{
   display: inline-block;
   width: 0;
   height: 0;
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
   border-top: 6px solid #868686;
+  position: relative;
+  top: -3px;
+}
+.icon-triangle-bottom{
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid #868686;
+  position: relative;
+  top: -3px;
+}
+.icon-triangle-left{
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 6px solid #868686;
+  border-right: 6px solid transparent;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  position: relative;
+  top: -3px;
+}
+.icon-triangle-right{
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid #868686;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
   position: relative;
   top: -3px;
 }

@@ -1,4 +1,4 @@
-let publicPath = process.env.NODE_ENV === 'development' ? '/' : '/dist/'; // 生产环境文件构建路径
+let publicPath = process.env.NODE_ENV === 'development' ? '/' : '/expertclient/'; // 生产环境文件构建路径
 /*eslint-disable*/
 var path = require('path');
 const pageProxy = require(path.join(__dirname,'/src/api/proxy.js'));   //导入pageProxy
@@ -12,7 +12,6 @@ let proxy = {
 ...pageProxy
 };
 
-console.log(proxy);
 
 module.exports = {
     // 基本路径

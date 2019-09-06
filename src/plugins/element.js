@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import {
   // Pagination,
-  // Dialog,
+  Dialog,
   // Autocomplete,
   // Dropdown,
   // DropdownMenu,
@@ -10,7 +10,7 @@ import {
   // Submenu,
   // MenuItem,
   // MenuItemGroup,
-  // Input,
+  Input,
   // InputNumber,
   // Radio,
   // RadioGroup,
@@ -19,12 +19,12 @@ import {
   // CheckboxButton,
   // CheckboxGroup,
   // Switch,
-  Select,
-  Option,
+  // Select,
+  // Option,
   // OptionGroup,
-  Button,
+  // Button,
   // ButtonGroup,
-  Table,
+  // Table,
   // TableColumn,
   // DatePicker,
   // TimeSelect,
@@ -39,7 +39,7 @@ import {
   // TabPane,
   // Tag,
   // Tree,
-  // Alert,
+  Alert,
   // Slider,
   // Icon,
   // Row,
@@ -49,7 +49,7 @@ import {
   // Spinner,
   // Badge,
   // Card,
-  // Rate,
+  Rate,
   // Steps,
   // Step,
   // Carousel,
@@ -73,14 +73,14 @@ import {
   // Backtop,
   // PageHeader,
   // CascaderPanel,
-  // Loading,
-  // MessageBox,
+  Loading,
+  MessageBox,
   Message,
   // Notification
 } from 'element-ui';
 
 // Vue.use(Pagination);
-// Vue.use(Dialog);
+Vue.use(Dialog);
 // Vue.use(Autocomplete);
 // Vue.use(Dropdown);
 // Vue.use(DropdownMenu);
@@ -89,7 +89,7 @@ import {
 // Vue.use(Submenu);
 // Vue.use(MenuItem);
 // Vue.use(MenuItemGroup);
-// Vue.use(Input);
+Vue.use(Input);
 // Vue.use(InputNumber);
 // Vue.use(Radio);
 // Vue.use(RadioGroup);
@@ -98,12 +98,12 @@ import {
 // Vue.use(CheckboxButton);
 // Vue.use(CheckboxGroup);
 // Vue.use(Switch);
-Vue.use(Select);
-Vue.use(Option);
+// Vue.use(Select);
+// Vue.use(Option);
 // Vue.use(OptionGroup);
-Vue.use(Button);
+// Vue.use(Button);
 // Vue.use(ButtonGroup);
-Vue.use(Table);
+// Vue.use(Table);
 // Vue.use(TableColumn);
 // Vue.use(DatePicker);
 // Vue.use(TimeSelect);
@@ -118,7 +118,7 @@ Vue.use(Popover);
 // Vue.use(TabPane);
 // Vue.use(Tag);
 // Vue.use(Tree);
-// Vue.use(Alert);
+Vue.use(Alert);
 // Vue.use(Slider);
 // Vue.use(Icon);
 // Vue.use(Row);
@@ -128,7 +128,7 @@ Vue.use(Popover);
 // Vue.use(Spinner);
 // Vue.use(Badge);
 // Vue.use(Card);
-// Vue.use(Rate);
+Vue.use(Rate);
 // Vue.use(Steps);
 // Vue.use(Step);
 // Vue.use(Carousel);
@@ -153,12 +153,12 @@ Vue.use(Popover);
 // Vue.use(PageHeader);
 // Vue.use(CascaderPanel);
 
-// Vue.use(Loading.directive);
+Vue.use(Loading.directive);
 
-// Vue.prototype.$loading = Loading.service;
-// Vue.prototype.$msgbox = MessageBox;
-// Vue.prototype.$alert = MessageBox.alert;
-// Vue.prototype.$confirm = MessageBox.confirm;
+Vue.prototype.$loading = Loading.service;
+Vue.prototype.$msgbox = MessageBox;
+Vue.prototype.$alert = MessageBox.alert;
+Vue.prototype.$confirm = MessageBox.confirm;
 // Vue.prototype.$prompt = MessageBox.prompt;
 // Vue.prototype.$notify = Notification;
-Vue.prototype.$message = Message;
+Vue.prototype.$$message = Message;

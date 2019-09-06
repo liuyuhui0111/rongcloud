@@ -13,31 +13,29 @@
 
 </style>
 <template>
-  <div style="text-align: left;">
-    <h1>Web SDK Vue CLI</h1>
-    <p class="rong-input">
-      <span>appkey:</span>
-      <input type="text" v-model="params.appkey" size="20">
-    </p>
-    <p class="rong-input">
-      <span>token:</span><input type="text" size="110" v-model="params.token">
-    </p>
-    <p class="rong-input">
-      <span>navi:</span>
-      <input type="text" size="50" v-model="params.navi"><i>此配置项仅针对私有部署，
-      公有云请置空，格式为 10.10.10.10:8080</i>
-    </p>
-    <p class="rong-input">
-      <span></span>
-      <button @click="init">初始化客服</button>
-    </p>
-    <div class="rong-show-box">
-      <h3>初始化以及消息接收:</h3>
+  <!--   <div>
+      <div class="itembox1">
+      <div>id: <input type="text" v-model="params.id"></div>
+      <div>name: <input type="text" v-model="params.name"></div>
+      <div>icon: <input type="text" v-model="params.icon"></div>
+      <div>account: <input type="text" v-model="params.account"></div>
+      <div>channelFrom: <input type="text" v-model="params.channelFrom"></div>
+      <div>fromAddress: <input type="text" v-model="params.fromAddress"></div>
+      <div>fromName: <input type="text" v-model="params.fromName"></div>
+      <div>fromContent: <input type="text" v-model="params.fromContent"></div>
+      <div>companyLocation: <input type="text" v-model="params.companyLocation"></div>
+      <div>accountId: <input type="text" v-model="params.accountId"></div>
+      <div>distributorId: <input type="text" v-model="params.distributorId"></div>
+      <div>token: <input type="text" v-model="curUserData.token"></div>
     </div>
-    <div class="iframe-box">
-    <message ref="message1" :params="params" :targetId="targetId"></message>
-    </div>
+    <span class="itemsub" @click="init">初始化聊天</span> -->
+    <div>
+    <!-- <div class="itembox1">token: <input type="text" v-model="params.token"></div> -->
+  <!-- <span class="itemsub" @click="init">初始化聊天</span> -->
+    <div v-if="curUserData.token" class="mask">
+      <message ref="message"></message>
 
+    </div>
   </div>
 </template>
 
@@ -51,38 +49,61 @@ export default {
   },
   data() {
     return {
-      // OA2LMom6eh4yO54ocyIAAnu4IalNLTguBim2CTjn4e34UNHhvR3lkMaXLj5yBngBWXTiCIyduk8=
-      // NJg/IXsoY3sQNALYyJngIQdm41ql470fWXNt1SMYMf/BUZ/zIIhgzVHaJvLyo150OU7uh01wkqeUJU0pAMr8Qg==
-      // ZRKvopltKvtz1Ueqp5Jk3RuqK+4nGFDGLN4mmc6ePN30HV4wUNiXczEOAeMLh4y/Ra3C92d9h5oLOE0XFf0seg==
       params: {
-        appkey: 'sfci50a7s3uzi',
-        token: 'NJg/IXsoY3sQNALYyJngIQdm41ql470fWXNt1SMYMf/BUZ/zIIhgzVHaJvLyo150OU7uh01wkqeUJU0pAMr8Qg==',
-        navi: '',
-
+        id: 'l849643088@163.com',
+        name: '测试用户',
+        icon: 'https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=1372494972,1692060958&fm=26&gp=0.jpg',
+        account: 'l849643088@163.com',
+        channelFrom: '1624',
+        fromAddress: 'http://test.5ifapiao.com:8888/course-430100004#/index',
+        fromName: '优税学院',
+        fromContent: 'http://test.5ifapiao.com:8888/course-430100004#/index',
+        companyLocation: 'http://test.5ifapiao.com:8888/course-430100004#/index',
+        accountId: 'l849643088@163.com',
+        distributorId: 0,
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlIjoibWFkZSBieSBoZWF2ZW4iLCJ1c2VyX25hbWUiOiJsODQ5NjQzMDhAMTYzLmNvbUNQIiwic2NvcGUiOlsic2VydmVyIl0sInVzZXJUeXBlIjoiQyIsImV4cCI6MTU2NjkxMTY4MiwidXNlcklkIjo2OTksImF1dGhvcml0aWVzIjpbIlJPTEVfVVNFUiJdLCJqdGkiOiI3ZDAwMzg1Yy1mMmQxLTQxMGQtYTMzZi0wMDZiMjExNTU4ZWMiLCJjbGllbnRfaWQiOiJmYXRjIn0.LJP4639v9-QT9rKAn2m9H6qoFJQewbPheTUShIBlKW0',
       },
-      targetId: '002',
     };
   },
   mounted() {
     // this.init();
+    // window.vue.setcurUserDataFn({
+    //   id: 'l849643088@163.com',
+    //   name: '测试用户',
+    //   icon: 'https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=1372494972,1692060958&fm=26&gp=0.jpg',
+    //   account: 'l849643088@163.com',
+    // });
+    console.log(this.curUserData);
   },
   methods: {
-
     init() {
-      this.$refs.message1.init();
+      /*eslint-disable*/ 
+      window.vue.setcurUserDataFn(this.params);
+      /* eslint-enable */
     },
-
-
   },
 };
 /* eslint-enable */
 </script>
-<style>
-  .iframe-box{
-    position: fixed;
-    width: 500px;
-    height: 500px;
-    right: 0;
-    bottom: 0;
-  }
+<style scope>
+.mask{
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+}
+.itembox1 div{
+  margin: 10px 0;
+}
+.itemsub{
+  background: #f1f1f1;
+  padding: 10px 30px;
+  margin: 10px auto;
+  cursor: pointer;
+  display: block;
+  text-align: center;
+  width: 50%;
+}
 </style>
