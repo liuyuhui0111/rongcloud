@@ -137,7 +137,7 @@ export default {
       // 检测权益
       this.isShowMessageBox = true;
       this.isShowMessage = false;
-
+      this.setmesListData([{}]);
       let gwtRes = await getWorkTime();
 
       if (gwtRes.data
@@ -188,7 +188,7 @@ export default {
       // this.dialogCompentVisible =true;
 
       // 获取是否有正在咨询的问题
-      let giqRes = await getInQuestion({ account: this.curUserData.id });
+      let giqRes = await getInQuestion({ accountId: this.curUserData.accountId });
       if (giqRes.data.code === '0000') {
         let { data } = giqRes.data;
         if (data.status === 1) {
@@ -312,7 +312,9 @@ export default {
         companyLocation: this.curUserData.companyLocation,
         distributorId: this.curUserData.distributorId,
         // distributorId: 0,
-        companyTrade: (this.curUserData.currentSelect && this.curUserData.currentSelect.entName) || '',
+        companyTrade: this.curUserData.industry
+        || (this.curUserData.currentSelect && this.curUserData.currentSelect.industry)
+        || '',
         userCompany: (this.curUserData.currentSelect && this.curUserData.currentSelect.entName) || '',
         userType: this.curUserData.userType, //
         questionDesc: this.getExpertQuestionParam.question_desc,
@@ -333,6 +335,7 @@ export default {
           // 专家不在线
           this.dialogQuestion = false;
           await this.confirmFn('6');
+          this.hideMessage();
         }
       } else {
         this.$message(res.data.message);
@@ -379,6 +382,7 @@ export default {
     },
     resetData() {
       // 初始化data数据
+      this.setmesListData([{}]);
       this.mesData = '';
       this.rateParam = { // 评分信息
         rateVal: 5,
