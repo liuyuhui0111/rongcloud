@@ -29,6 +29,7 @@ axios.interceptors.request.use(
         config.headers.Authorization = store.getters.token ? 'Bearer '+store.getters.token : 'Bearer';
         // config.headers.Authorization = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlIjoibWFkZSBieSBoZWF2ZW4iLCJ1c2VyX25hbWUiOiIxODUwMDM2OTE3NiIsInNjb3BlIjpbInNlcnZlciJdLCJ1c2VyVHlwZSI6IkMiLCJleHAiOjE1NjUzNTY4MDIsInVzZXJJZCI6MTgsImF1dGhvcml0aWVzIjpbIlJPTEVfVVNFUiJdLCJqdGkiOiI2MmE2ZDQ4NC1iNjE5LTRhNzgtODJkNi05ZTFlMGUwYmUwYjQiLCJjbGllbnRfaWQiOiJmYXRjIn0.bXLegVDQTYE1WgCN7u2_47y5-BsbfBi1tUWT1gq6V_A';
         config.headers.httpHost = window.location.href || '';
+        config.headers.userId = store.getters.curUserData.userId ? store.getters.curUserData.userId : '-1';
 
         if(config.isLoading){
           // 如果为true 请求提示loadding

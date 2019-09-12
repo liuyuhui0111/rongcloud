@@ -16,7 +16,7 @@ import {
   groupSend,
 } from '@/api/apis';
 import {
-  rongInit, getemojiList, emojiToHtml, sendMessage, initGroup,
+  initEmoji, getemojiList, emojiToHtml, sendMessage, initGroup, initCreateMessage,
 } from './js/init';
 import {
   formatDate,
@@ -24,6 +24,7 @@ import {
 import {
   validByPhone,
 } from '@/assets/utils/validator';
+import COMMON_ENV from '@/config/env';
 
 export default {
   name: 'message',
@@ -86,7 +87,7 @@ export default {
       isCanUpLoad: true,
       timer: null,
       params: { // 初始化容联配置
-        appkey: 'sfci50a7s3uzi',
+        appkey: '',
         token: '',
         navi: '',
       },
@@ -137,7 +138,6 @@ export default {
       // 检测权益
       this.isShowMessageBox = true;
       this.isShowMessage = false;
-      this.setmesListData([{}]);
       let gwtRes = await getWorkTime();
 
       if (gwtRes.data
@@ -193,14 +193,14 @@ export default {
         let { data } = giqRes.data;
         if (data.status === 1) {
           // 有正在咨询的问题
-          if (data.online === 0) {
-            this.setcurTargetUserData({ name: data.expertName, ...data });
-            this.init();
-          } else {
-            // 专家不在线
-            await this.confirmFn('6');
-            this.hideMessage();
-          }
+
+          this.setcurTargetUserData({ name: data.expertName, ...data });
+          this.init();
+          // if (data.online === 0) {} else {
+          //   // 专家不在线
+          //   await this.confirmFn('6');
+          //   this.hideMessage();
+          // }
         } else if (data.status === 0) {
           // 没有
           this.dialogQuestion = true;
@@ -226,73 +226,75 @@ export default {
       if (res.data.code === '0000') {
         personnNum = res.data.data.counts;
       }
-
-      if (this.mesListData.length > 0
-        && this.mesListData[0].id === this.curTargetUserData.id) {
-        // 如果id 相等  证明还是上一次的咨询单  更新咨询单信息
-        let obj = this.mesListData[0];
-        obj.personnNum = personnNum;
-        this.setmesListData([obj]);
-        console.log(this.mesListData);
-      } else {
-      // 如果没有  获取历史聊天记录
-        let imres = await getIMById({ id: this.curTargetUserData.id });
-        let list = [];
-        if (imres.data.code === '0000') {
-          let arr = [];
-          // 排除后台自定义消息  加入群组消息
-          imres.data.data.msgList.forEach((item) => {
-            if (item.objectName !== 'RC:DxhyMsg'
+      //  获取历史聊天记录
+      let imres = await getIMById({ id: this.curTargetUserData.id });
+      let list = [];
+      if (imres.data.code === '0000') {
+        let arr = [];
+        // 排除后台自定义消息  加入群组消息
+        imres.data.data.msgList.forEach((item) => {
+          if (item.objectName !== 'RC:DxhyMsg'
               && item.objectName !== 'RC:GrpNtf'
               && item.targetId
               && item.fromUserId) {
-              arr.push(item);
-            }
-          });
+            arr.push(item);
+          }
+        });
+        if (arr.length > 0) {
           list = arr;
+        } else if (window.vue.mesListData[0] && window.vue.mesListData[0].list) {
+          /*eslint-disable*/ 
+          list = window.vue.mesListData[0].list;
+          /* eslint-enable */
         }
-        let obj = {
-          code: this.curTargetUserData.code, // 咨询单code
-          id: this.curTargetUserData.id, // 咨询单id
-          target: { // 目标对象
-            id: this.curTargetUserData.expertId, // 专家id
-            name: this.curTargetUserData.name, // 专家名称
-            account: this.curTargetUserData.expertAccount, // 专家账号
-          },
-          user: {
-            id: this.curUserData.userId, // 当前用户id
-            icon: this.curUserData.headImg, // 当前用户头像
-            name: this.curUserData.username, // 当前用户名
-          },
-          list, // 聊天记录
-          personnNum,
-        };
-        this.setmesListData([obj]);
       }
+      let obj = {
+        code: window.vue.curTargetUserData.code, // 咨询单code
+        id: window.vue.curTargetUserData.id, // 咨询单id
+        target: { // 目标对象
+          id: window.vue.curTargetUserData.expertId, // 专家id
+          name: window.vue.curTargetUserData.name, // 专家名称
+          account: window.vue.curTargetUserData.expertAccount, // 专家账号
+        },
+        user: {
+          id: this.curUserData.userId, // 当前用户id
+          icon: this.curUserData.headImg, // 当前用户头像
+          name: this.curUserData.username, // 当前用户名
+        },
+        list, // 聊天记录
+        personnNum,
+      };
+
+      this.setmesListData([obj]);
 
 
       this.messageData.content.extra = {
-        mesid: this.mesListData[0].id,
-        code: this.mesListData[0].code,
-        curid: this.mesListData[0].id,
-        icon: this.mesListData[0].user.icon,
-        name: this.mesListData[0].user.name,
+        mesid: window.vue.mesListData[0].id,
+        code: window.vue.mesListData[0].code,
+        curid: window.vue.mesListData[0].id,
+        icon: window.vue.mesListData[0].user.icon,
+        name: window.vue.mesListData[0].user.name,
       };
-      this.targetIdList = [this.mesListData[0].target.id];
-      if (this.curTargetUserData.expertFromId) {
+      this.targetIdList = [window.vue.mesListData[0].target.id];
+      if (window.vue.curTargetUserData.expertFromId) {
         // 如果有转单id  代表转单
-        this.groupId = this.curTargetUserData.code;
-        this.targetIdList = [this.mesListData[0].target.id,
-          this.curTargetUserData.expertFromId];
+        this.groupId = window.vue.curTargetUserData.code;
+        this.targetIdList = [window.vue.mesListData[0].target.id,
+          window.vue.curTargetUserData.expertFromId];
       }
-      // this.getHistoryMessageListFn();
-      if (this.params.appkey && this.params.token) {
-        rongInit(this.params, this.addPromptInfo);
 
-        this.showMessage();
+      // if (this.getExpertQuestionParam.question_desc) {
+      //   // 如果存在问题信息  发送问题
+      //   this.startSendMes(this.getExpertQuestionParam.question_desc);
+      // }
+      this.params.appkey = COMMON_ENV.appkey;
+      if (this.params.appkey && this.params.token) {
+        this.rongInit(this.params);
       } else {
         throw new Error('appkey 和 token 不能为空');
       }
+      this.showMessage();
+      // this.getHistoryMessageListFn();
     },
 
 
@@ -309,11 +311,11 @@ export default {
         fromName: this.curUserData.fromName,
         fromAddress: this.curUserData.fromAddress,
         fromContent: this.curUserData.fromContent,
-        companyLocation: this.curUserData.companyLocation,
+        companyLocation: (this.curUserData.currentSelect && this.curUserData.currentSelect.area)
+        || '',
         distributorId: this.curUserData.distributorId,
         // distributorId: 0,
-        companyTrade: this.curUserData.industry
-        || (this.curUserData.currentSelect && this.curUserData.currentSelect.industry)
+        companyTrade: (this.curUserData.currentSelect && this.curUserData.currentSelect.industry)
         || '',
         userCompany: (this.curUserData.currentSelect && this.curUserData.currentSelect.entName) || '',
         userType: this.curUserData.userType, //
@@ -364,7 +366,7 @@ export default {
     async endEvaluateFn() {
       // 结束咨询
       let params = {
-        id: this.curTargetUserData.id,
+        id: window.vue.curTargetUserData.id,
         endType: '1', // 结束类型1用户结束2系统结束
       };
       let res = await endEvaluate(params);
@@ -382,7 +384,10 @@ export default {
     },
     resetData() {
       // 初始化data数据
-      this.setmesListData([{}]);
+      this.groupId = '';
+      this.targetIdList = [];
+      window.vue.mesListData[0].list = [];
+      this.setmesListData(window.vue.mesListData);
       this.mesData = '';
       this.rateParam = { // 评分信息
         rateVal: 5,
@@ -408,7 +413,9 @@ export default {
       let flag = false;
       let ids = [];
       this.rateTagMap.forEach((item) => {
-        if (item.active) {
+        // 如果是选中状态 且包含当前分值 push
+        if (item.active
+          && (item.rate.indexOf(this.rateParam.rateVal) !== -1)) {
           ids.push(item.id);
           flag = true;
         }
@@ -519,7 +526,7 @@ export default {
     async hideMessage(time) {
       // 隐藏聊天框
       // 清除未读消息
-      clearUnreadMsgCount({ userId: this.userId, questionId: this.curTargetUserData.id });
+      clearUnreadMsgCount({ userId: this.userId, questionId: window.vue.curTargetUserData.id });
       // if(this.dialogRightVisible){
       //   // 校验userParam
       //   if(this.userParam.name || this.userParam.tel){
@@ -567,15 +574,21 @@ export default {
       this.isShowMessageBox = false;
       this.isShowMessage = false;
       this.setcurUserData({});
+      this.resetData();
       this.$emit('hide');
       this.sendMessageToParent({ code: '200', data: 'hide' });
     },
-    async startSendMes() {
-      if (!this.mesData) {
-        this.$message({ message: '请输入聊天内容', type: 'warning' });
-        return;
+    async startSendMes(mes) {
+      if (!mes) {
+        this.mesData = this.mesData.replace(/\n/g, '').replace(/\r\n/g, '').replace(/↵/g, '');
+        if (!this.mesData) {
+          this.$message({ message: '请输入聊天内容', type: 'warning' });
+          return;
+        }
+        this.messageData.content.content = this.mesData;
+      } else {
+        this.messageData.content.content = mes;
       }
-      this.messageData.content.content = this.mesData;
       this.sendMessageFn('TextMessage');
     },
     sendQuestion(content) {
@@ -618,12 +631,12 @@ export default {
       console.log(res);
     },
     checkMesForSystem() {
-      if (this.mesListData[0].list.length < 1) {
+      if (window.vue.mesListData[0].list.length < 1) {
         // 没有聊天数据
         return true;
       }
       let min = 5 * 60 * 1000; // 发送系统时间  时间间隔 分钟
-      let { list } = this.mesListData[0];
+      let { list } = window.vue.mesListData[0];
       let lastTime = list[list.length - 1].sentTime + min;
       let curTime = new Date().getTime();
       if (lastTime < curTime) {
@@ -714,7 +727,10 @@ export default {
       if (type === 'edit') {
         this.fileUpLoadSuc(data);
       } else {
-        let obj = this.mesListData[0];
+        let obj = window.vue.mesListData[0];
+        if (!obj.list) {
+          this.init();
+        }
         obj.list.push({
           id: obj.list.length,
           ...data,
@@ -731,7 +747,7 @@ export default {
       }
     },
     fileUpLoadSuc(data, type) {
-      let list = this.mesListData[0].list.slice();
+      let list = window.vue.mesListData[0].list.slice();
       let i = -1;
       list.forEach((item, index) => {
         if (item.id === this.curUploadFileId) {
@@ -749,8 +765,8 @@ export default {
           // 上传成功 修改消息状态
           list[i] = data;
         }
-        this.mesListData[0].list = list;
-        this.setmesListData(this.mesListData);
+        window.vue.mesListData[0].list = list;
+        this.setmesListData(window.vue.mesListData);
         this.$forceUpdate();
       }
       this.isCanUpLoadFile = true;
@@ -783,7 +799,7 @@ export default {
       });
     },
     hidepersonnNum() {
-      this.mesListData[0].personnNum = -1;
+      window.vue.mesListData[0].personnNum = -1;
       console.log('hidepersonnNum');
       this.$forceUpdate();
     },
@@ -799,6 +815,25 @@ export default {
           console.log('非当前咨询单消息，不做处理', window.vue.curTargetUserData.id, res.data.content.extra.mesid);
           return;
         }
+        // 判断当前消息时间 是否小于最后一条消息的时间  如果小于那个  不做处理
+        // 判断当前消息的msgUID  是否存在 存在不做操作 messageUId
+        if (window.vue.mesListData[0].list
+          && window.vue.mesListData[0].list.length > 0) {
+          let flag = false;
+          let { list } = window.vue.mesListData[0];
+          let curMsgUId = res.data.messageUId || res.data.msgUID;
+          list.forEach((item) => {
+            let listUid = item.messageUId || item.msgUID;
+            if (curMsgUId && listUid && curMsgUId === listUid) {
+              // 存在id
+              flag = true;
+            }
+          });
+          if (flag) {
+            console.log('已存在该消息记录，不做处理');
+            return;
+          }
+        }
         this.hidepersonnNum();
 
         // 收到消息
@@ -811,8 +846,8 @@ export default {
           }
         } else if (res.data.messageType === 'GroupNotificationMessage') {
           // 加入群组消息  转单
-          this.curTargetUserData.name = res.data.content.data.toExpertName; // 转单专家name
-          this.setcurTargetUserData(this.curTargetUserData);
+          window.vue.curTargetUserData.name = res.data.content.data.toExpertName; // 转单专家name
+          this.setcurTargetUserData(window.vue.curTargetUserData);
           this.groupId = res.data.content.data.targetGroupName; // 群组id
 
           let tagetid = res.data.content.data.operatorNickname; // 被转专家id
@@ -827,6 +862,7 @@ export default {
         console.log('拿到userid', res);
         // 拿到userid
         this.setUserId(res.data);
+
         // 获取聊天记录
         // this.getHistoryMessageListFn();
       } else if (res.code === '-9999') {
@@ -860,7 +896,7 @@ export default {
       if (res.code === '0000') {
         this.sendMesResult(res);
       }
-      this.curUploadFileId = this.mesListData[0].list.length;
+      this.curUploadFileId = window.vue.mesListData[0].list.length;
       let obj = {
         content: {
           messageName: 'ImageMessage',
@@ -900,7 +936,7 @@ export default {
       if (res.code === '0000') {
         this.sendMesResult(res);
       }
-      this.curUploadFileId = this.mesListData[0].list.length;
+      this.curUploadFileId = window.vue.mesListData[0].list.length;
       let content = {
         name: file.name,
         size: file.size,
@@ -1181,6 +1217,98 @@ export default {
         return this.confirm(message,'确定','','',true);
       }
     },
+
+
+    rongInit(params) {
+      // 容联初始化
+      let oThis = this;
+      let { RongIMLib } = window;
+      let { Protobuf } = window;
+      let { RongIMClient } = window.RongIMLib;
+      let { appkey } = params;
+      let { token } = params;
+      let { navi } = params;
+      let config = {
+        protobuf: Protobuf,
+      };
+      if (navi) {
+        config.navi = navi;
+      }
+      // 初始化emoji
+      initEmoji();
+
+
+      RongIMClient.init(appkey, null, config);
+      RongIMClient.setConnectionStatusListener({
+        onChanged(status) {
+          
+          switch (status) {
+            case RongIMLib.ConnectionStatus.CONNECTED:
+            case 0:
+              console.log('连接成功');
+              oThis.addPromptInfo({ code: status, message: '' });
+              break;
+
+            case RongIMLib.ConnectionStatus.CONNECTING:
+            case 1:
+              console.log('连接中');
+              oThis.addPromptInfo({ code: status, message: '' });
+              break;
+
+            case RongIMLib.ConnectionStatus.DISCONNECTED:
+            case 2:
+              console.log('当前用户主动断开链接');
+              oThis.addPromptInfo({ code: '-9999', message: '' });
+              break;
+
+            case RongIMLib.ConnectionStatus.NETWORK_UNAVAILABLE:
+            case 3:
+              oThis.addPromptInfo({ code: '1001', message: '网络不可用' });
+              break;
+
+            case RongIMLib.ConnectionStatus.CONNECTION_CLOSED:
+            case 4:
+              oThis.addPromptInfo({ code: '-9999', message: '未知原因，连接关闭' });
+              break;
+
+            case RongIMLib.ConnectionStatus.KICKED_OFFLINE_BY_OTHER_CLIENT:
+            case 6:
+              oThis.addPromptInfo({ code: '1002', message: '用户账户在其他设备登录，本机会被踢掉线' });
+              break;
+
+            case RongIMLib.ConnectionStatus.DOMAIN_INCORRECT:
+            case 12:
+              oThis.addPromptInfo({ code: '1002', message: '当前运行域名错误，请检查安全域名配置' });
+              break;
+            default:
+              oThis.addPromptInfo({ code: '404', message: '服务器返回错误' });
+          }
+        },
+      });
+
+      // 创建自定义事件
+      initCreateMessage('OptionsMessage', ['type', 'data', 'user', 'extra']);
+      initCreateMessage('dxhyMessage', ['title', 'user', 'content', 'contentType', 'extra'], true, true, 'RC:DxhyMsg');
+
+      RongIMClient.setOnReceiveMessageListener({
+        // 接收到的消息
+        onReceived(message) {
+          console.log('接收消息');
+          oThis.addPromptInfo({ code: '9999', data: message });
+        },
+      });
+      RongIMClient.connect(token, {
+        onSuccess(userId) {
+          oThis.addPromptInfo({ code: '0000', data: userId });
+        },
+        onTokenIncorrect() {
+          oThis.addPromptInfo({ code: '0002', data: 'token无效' });
+        },
+        onError(errorCode) {
+          oThis.addPromptInfo(errorCode);
+        },
+      }, null);
+    }
     
 
   }

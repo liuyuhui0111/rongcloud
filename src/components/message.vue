@@ -160,7 +160,7 @@
              :key="index" v-html="item.node.outerHTML">
              </div >
           </div>
-          <div @keyup.enter="startSendMes">
+          <div @keyup.enter="startSendMes()">
             <el-input
 
             type="textarea"
@@ -174,7 +174,7 @@
           <!-- <textarea v-model="mesData" placeholder="说点什么吧"></textarea> -->
         </div>
       </div>
-      <div class="btn-sub sub" @click="startSendMes">发送</div>
+      <div class="btn-sub sub" @click="startSendMes()">发送</div>
 
       </template>
       <!-- 问题弹窗 -->
@@ -807,6 +807,7 @@ display: none;
   border-radius: 4px;
   word-break: break-all;
   position: relative;
+  min-height: 22px;
 }
 .messagebox .meslist .item .mes.filebox{
   padding: 40px 20px 20px 20px;

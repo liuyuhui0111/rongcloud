@@ -6,22 +6,27 @@ let COMMON_ENV = {
 	COMMON_REPLACE_URL:'COMMONREPLACEURL',		//#号替换字段?COMMONREPLACEURL=
 	COMMON_TOKEN:'token',			//token字段名称
 	COMMON_TOKEN_DAY:0,				//token 失效时间 0代表关闭浏览器就失效
+	appkey:'sfci50a7s3uzi',		//融云appkey
 };
 if (process.env.VUE_APP_ENV === 'production') {
 	// 生产环境
   COMMON_ENV.SSO_URL = 'https://sso.ele-cloud.com';
+  COMMON_ENV.appkey = 'y745wfm8yq6av'; //融云appkey
 } else if (process.env.VUE_APP_ENV === 'pre') {
 	// 预发环境
 	// COMMON_ENV.SSO_URL = 'http://apptest.5ifapiao.com';
 	COMMON_ENV.SSO_URL = 'https://sso-pre.ele-cloud.com';
+	COMMON_ENV.appkey = 'y745wfm8yq6av'; //融云appkey
 } else if (process.env.VUE_APP_ENV === 'test') {
 	// 测试环境
 	// COMMON_ENV.SSO_URL = 'http://apptest.5ifapiao.com';
 	COMMON_ENV.SSO_URL = 'http://test.5ifapiao.com:8888';
+	COMMON_ENV.appkey = 'sfci50a7s3uzi'; //融云appkey
 } else if (process.env.VUE_APP_ENV === 'development') {
 	// 开发环境
   // COMMON_ENV.SSO_URL = 'http://ysxy.5ifapiao.com';
   COMMON_ENV.SSO_URL = 'http://test.5ifapiao.com:8888';
+  COMMON_ENV.appkey = 'sfci50a7s3uzi'; //融云appkey
 }
 
 export default COMMON_ENV;

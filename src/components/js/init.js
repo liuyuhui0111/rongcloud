@@ -1,6 +1,6 @@
 // 消息类型页面 https://www.rongcloud.cn/docs/message_architecture.html#message_content
 
-function initEmoji() {
+export function initEmoji() {
   let { RongIMLib } = window;
   // 直接初始化
   RongIMLib.RongIMEmoji.init();

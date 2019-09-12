@@ -28,9 +28,9 @@ module.exports = {
     },
     configureWebpack: config => {
       // 去除生产环境console.log
-      if (process.env.NODE_ENV === 'production') {
-        config.optimization.minimizer[0].options.terserOptions.compress.drop_console = true
-      }
+      // if (process.env.NODE_ENV === 'production') {
+      //   config.optimization.minimizer[0].options.terserOptions.compress.drop_console = true
+      // }
     },
     css: {
       loaderOptions: { // 向 CSS 相关的 loader 传递选项
