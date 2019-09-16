@@ -17,7 +17,7 @@
     </div>
     <span class="itemsub" @click="init">初始化聊天</span> -->
     <div>
-      初始化聊天窗口中...
+
     <div v-if="curUserData.token" class="mask">
       <message ref="message"></message>
     </div>

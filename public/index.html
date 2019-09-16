@@ -8,6 +8,18 @@
     <!-- iconfont 在线css -->
     <link rel="stylesheet" href="<%= BASE_URL %>iconfont/iconfont.css">
     <title>优税专家客户端</title>
+    <script>
+      // 针对IE10
+      if (/*@cc_on!@*/false) {
+          document.documentElement.className += ' ie' + document.documentMode;
+      }
+      // 针对IE11及非IE浏览器，
+      // 因为IE11下document.documentMode为11，所以html标签上会加ie11样式类；
+      // 而非IE浏览器的document.documentMode为undefined，所以html标签上会加ieundefined样式类。
+      if (/*@cc_on!@*/true) {
+          document.documentElement.className += ' ie' + document.documentMode;
+      }
+    </script>
   </head>
   <body>
     <noscript>

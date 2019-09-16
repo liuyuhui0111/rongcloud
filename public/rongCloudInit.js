@@ -62,7 +62,7 @@
     var oIframe = document.createElement('iframe');
     oIframe.frameborder="0";
     oIframe.id = COMMONID+'iframe';
-    oIframe.src=iframeSrc;
+    oIframe.src=iframeSrc+'?t='+new Date().getTime();
     oIframe.style.cssText = 'width:100%;height:100%;max-height:600px;max-width:600px;';
     oDiv.id=COMMONID;
     oDiv.style.cssText="display:none;justify-content: center;align-items: center;background: rgba(0,0,0,0.5);position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;";

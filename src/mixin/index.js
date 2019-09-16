@@ -69,6 +69,7 @@ export default {
           'curTargetUserData', // 目标用户信息
           'curChangeUserData', // 转单专家用户信息
           'mesListData',
+          'rongCloudData', // 融云消息
         ]),
       },
       methods: {
@@ -161,6 +162,10 @@ export default {
           'setcurTargetUserData', // 目标用户信息
           'setcurChangeUserData', // 转单专家用户信息
           'setmesListData',
+        ]),
+        ...mapMutations('rongcloud', [
+          'setRongCloudUser',
+          'setRongCloudData',
         ]),
       },
 

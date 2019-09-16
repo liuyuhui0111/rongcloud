@@ -3,10 +3,9 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import getters from './getters'
 import {getTokenFn,setTokenFn} from '@/assets/utils/util'
+import rongcloud from './modules/rongcloud';
 
-const modules = {
-}
-
+console.log(rongcloud)
 
 Vue.use(Vuex);
 
@@ -20,7 +19,6 @@ export default new Vuex.Store({
 		curChangeUserData:{},		//当前转单对象信息存储  用户id  用户名称 用户账户 imid等
 		mesListData:[],		//{id:xx,code:xx}	聊天记录对象 id:咨询单id code:咨询单code  user:当前用户信息  target:目标对象 list:聊天列表 group:群组信息// 
 	},
-	getters: {},
 	actions: {},
 	mutations: {
 		 setcurTargetUserData(state,data) {
@@ -72,6 +70,8 @@ export default new Vuex.Store({
 	  	
 	  },
 	},
-  modules,
+  modules:{
+  	rongcloud,
+  },
   getters
 });

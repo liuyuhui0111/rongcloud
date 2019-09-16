@@ -8,7 +8,7 @@
       <div class="headerbox">
         <span class="title">{{curTargetUserData.name}} 咨询中</span>
         <div class="btns">
-        <span @click="hideMessage" class="close">-</span>
+        <span @click="hideMessage()" class="close">-</span>
         </div>
       </div>
       <!-- 聊天展示区域 -->
@@ -181,7 +181,7 @@
       <div v-show="dialogQuestion" class="dialog-question">
           <div class="dialog-header">
             <span>优税专家</span>
-            <span @click="hideMessage" class="close">-</span>
+            <span @click="hideMessage()" class="close">-</span>
           </div>
           <div class="dialog-content">
             <p>请描述您要向专家咨询的问题，以便专家为您详细解答。</p>
@@ -206,7 +206,7 @@
         <el-dialog title=""
         :modal-append-to-body="boolFalse"
         :close-on-click-modal="boolFalse"
-        @close="hideMessage"
+        @close="hideMessage()"
         :modal="boolFalse"
         :visible.sync="dialogRightVisible">
             <p class="title">您的免费权益已全部消耗，成为VIP会员继续免费咨询</p>

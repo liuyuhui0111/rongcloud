@@ -25,12 +25,15 @@ module.exports = {
     chainWebpack: config => {
       // 移除 prefetch 插件
       config.plugins.delete('prefetch');
+      // 增加文件hash 防止缓存
+      config.output.filename('[name].[hash].js').end();
     },
     configureWebpack: config => {
       // 去除生产环境console.log
       // if (process.env.NODE_ENV === 'production') {
       //   config.optimization.minimizer[0].options.terserOptions.compress.drop_console = true
       // }
+
     },
     css: {
       loaderOptions: { // 向 CSS 相关的 loader 传递选项

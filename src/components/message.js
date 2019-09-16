@@ -114,6 +114,7 @@ export default {
       if (res.data.code === '0000') {
         let token = res.data.data.imToken;
         this.setImToken(token);
+
         let obj = JSON.parse(JSON.stringify(this.curUserData));
         obj.token = 'true';
         obj.id = res.data.data.username;
@@ -122,6 +123,7 @@ export default {
         obj.name = res.data.data.nickname;
         obj.icon = res.data.data.headImg;
         this.setcurUserData({ ...res.data.data, ...obj });
+        // this.setRongCloudUser({ ...res.data.data, ...obj });
         this.params.token = token;
       } else {
         this.$message(`${res.data.message}`);
@@ -220,12 +222,7 @@ export default {
     },
     async init() {
       console.log(this.curUserData, this.curTargetUserData);
-      let personnNum = -1;
-      let res = await getWaitNum({ expertId: this.curTargetUserData.expertId }); // 获取等待人数
-      console.log(res);
-      if (res.data.code === '0000') {
-        personnNum = res.data.data.counts;
-      }
+
       //  获取历史聊天记录
       let imres = await getIMById({ id: this.curTargetUserData.id });
       let list = [];
@@ -240,14 +237,25 @@ export default {
             arr.push(item);
           }
         });
-        if (arr.length > 0) {
-          list = arr;
-        } else if (window.vue.mesListData[0] && window.vue.mesListData[0].list) {
-          /*eslint-disable*/ 
-          list = window.vue.mesListData[0].list;
-          /* eslint-enable */
-        }
+        list = arr;
       }
+      // 获取聊天记录 至少应该有一条
+      if (list.length < 1) {
+        // 没有获取到聊天记录
+        setTimeout(() => {
+          this.init();
+        }, 500);
+        return;
+      }
+
+
+      let personnNum = -1;
+      let res = await getWaitNum({ expertId: this.curTargetUserData.expertId }); // 获取等待人数
+      console.log(res);
+      if (res.data.code === '0000') {
+        personnNum = res.data.data.counts;
+      }
+
       let obj = {
         code: window.vue.curTargetUserData.code, // 咨询单code
         id: window.vue.curTargetUserData.id, // 咨询单id
@@ -386,7 +394,7 @@ export default {
       // 初始化data数据
       this.groupId = '';
       this.targetIdList = [];
-      window.vue.mesListData[0].list = [];
+      window.vue.mesListData[0] = { list: [] };
       this.setmesListData(window.vue.mesListData);
       this.mesData = '';
       this.rateParam = { // 评分信息
