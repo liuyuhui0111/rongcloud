@@ -5,12 +5,13 @@
     <div @click="isShowEmoji=false" class="messagebox">
 
       <template v-if="isShowMessage">
-      <div class="headerbox">
-        <span class="title">{{curTargetUserData.name}} 咨询中</span>
-        <div class="btns">
-        <span @click="hideMessage()" class="close">-</span>
+
+        <div class="headerbox">
+          <span class="title">{{curTargetUserData.name}} 咨询中</span>
+          <div class="btns">
+          <span @click="hideMessage()" class="close">-</span>
+          </div>
         </div>
-      </div>
       <!-- 聊天展示区域 -->
       <div id="meslist"
       class="meslist common-scroll-bar">
@@ -58,8 +59,8 @@
             <!-- 是否可以结束咨询 -->
               <p>是否可以结束咨询？</p>
               <div class="btns">
-                <span @click.once="endEvaluateFn()" class="yes">可以</span>
-                <span @click.once="sendQuestion('我还有问题')" class="no">我还有问题</span>
+                <span @click="endEvaluateFn($event)" class="yes">可以</span>
+                <span @click="sendQuestion($event,'我还有问题')" class="no">我还有问题</span>
               </div>
             </div>
           </template>
@@ -76,7 +77,7 @@
           <template v-if="item.objectName == 'RC:ImgMsg'">
             <!-- 图文消息 -->
             <div class="imgbox mes"
-            @click="imgClick(item)"
+            @click="imgClick(item.content.imageUri)"
             :class="{finish:!item.uploading}">
               <img :id="item.id" :src="item.content.content">
               <span class="after"></span>
@@ -86,29 +87,34 @@
           <template v-if="item.objectName == 'RC:FileMsg'">
             <!-- 文件消息 -->
             <div class="filebox imgbox mes"
-            @click="imgClick(item)"
+            @click="imgClick(item.content.fileUrl)"
             :class="{finish:!item.uploading}">
               <a href="javascript:">{{item.content.name}}</a>
               <span class="after"></span>
             </div>
           </template>
-
-
           </div>
         </div >
         </template>
+        <!-- 显示评分消息 -->
+          <div v-show="isShowRateMesBox" class="ratemesbox">
+            <rate @success="dialogCompentVisibleSub"></rate>
+          </div>
       </div>
 
       <!-- 发送区域 -->
       <div class="sendbox">
-        <div v-show="hidemask" class="hidemask">
+        <div v-if="hidemask" class="hidemask">
           <!-- 禁用聊天遮罩层 -->
           <span class="btn-sub" @click="again()">再次咨询</span>
         </div>
         <div class="btns">
-          <span @click.stop="emojiClick" class="iconfont iconbiaoqing"></span>
+          <span @click.stop="emojiClick"
+          title="表情"
+          class="iconfont iconbiaoqing"></span>
           <label for="picture">
-          <span class="iconfont iconfasongtupian"></span></label>
+          <span title="上传图片"
+          class="iconfont iconfasongtupian"></span></label>
           <input style="display:none;"
           @change="fileChange($event,'img')"
           accept="image/jpeg,image/jpg,image/gif,image/png,image/bmp"
@@ -121,7 +127,8 @@
           ref="file"
           style="display:none;" type="file" id="file" name="file">
           <label for="file">
-          <span class="iconfont iconfasongwenjian"></span>
+          <span title="上传文件"
+          class="iconfont iconfasongwenjian"></span>
         </label>
 
           <!-- 数据授权 -->
@@ -144,14 +151,16 @@
             <p>确定要结束咨询吗？</p>
             <div class="btnbox">
               <span @click="closeCofirmBox=false" class="cancel">取消</span>
-              <span @click="endEvaluateFn" class="sub">确定</span>
+              <span @click="endEvaluateFn()" class="sub">确定</span>
             </div>
           </div>
-          <span slot="reference" class="iconfont iconjieshuzixun"></span>
+          <span slot="reference"
+          title="结束咨询"
+          class="iconfont iconjieshuzixun"></span>
           </el-popover>
 
         </div>
-        <div class="inp">
+        <div class="inp h60">
           <div v-if="isShowEmoji && emojiList.length>0"
           @click.stop
           class="emojibox">
@@ -234,49 +243,15 @@
 
 
       <!-- 评价弹窗 -->
-      <div v-show="dialogCompentVisible" class="dialog-mask">
+      <div v-if="dialogCompentVisible" class="dialog-mask">
         <!-- 评价弹窗弹窗 -->
-        <div class="dialog-box-componet">
+        <div class="dialog-box-componet-dialog">
         <el-dialog title=""
         :modal-append-to-body="boolFalse"
         :close-on-click-modal="boolFalse"
         :modal="boolFalse"
         :visible.sync="dialogCompentVisible">
-           <div class="title">请对本次服务进行评价</div>
-           <div class="ratebox">
-              <div class="label">评星：</div>
-              <div class="rate">
-                <el-rate
-                  v-model="rateParam.rateVal"
-                  :colors="colors">
-                </el-rate>
-              </div>
-              <div>{{rateMap[rateParam.rateVal]}}</div>
-           </div>
-           <div class="tagbox">
-             <div v-for="(item,index) in rateTagMap"
-             @click="tagClick(item,index)"
-             v-show="!isShowTag(item)"
-             class="item"
-             :class="{on:item.active}"
-             :key="index">
-              {{item.text}}
-             </div >
-           </div>
-           <div class="inp">
-             <el-input
-            type="textarea"
-            placeholder="请填写对专家的评价"
-            v-model.trim="rateParam.rateMes"
-            rows="5"
-            resize="none"
-            maxlength="100"
-            show-word-limit
-            ></el-input>
-
-           </div>
-
-           <span @click="dialogCompentVisibleSub()" class="btn-sub">提交</span>
+          <rate @success="dialogCompentVisibleSub"></rate>
         </el-dialog>
         </div>
       </div>
@@ -303,6 +278,12 @@ export default message;
   }
   .common-message .inp .el-textarea__inner{
     border: none;
+    
+  }
+  .common-message .inp.h60 .el-textarea__inner{
+    overflow-y: auto;
+    height: 60px;
+    min-height: 60px;
   }
   .el-message-box__message p{
     text-align: center;
@@ -347,7 +328,7 @@ export default message;
     width: 400px;
     /*box-sizing:border-box;*/
   }
-  .common-message .dialog-box-componet .el-dialog{
+  .common-message .dialog-box-componet-dialog .el-dialog{
     width: 500px;
     box-sizing:border-box;
   }
@@ -363,7 +344,18 @@ export default message;
 
 </style>
 <style scoped>
-
+/*消息评分*/
+.ratemesbox{
+  width: 328px;
+  height: 345px;
+  position: relative;
+  border: 1px solid #D8D8D8;
+border-radius: 4px;
+border-radius: 4px;
+float: left;
+padding: 16px;
+margin: 16px;
+}
 /*是否可以结束咨询提示*/
 .closeQuestion{
   background: #FFFFFF;
@@ -376,10 +368,9 @@ text-align: left;
 font-size: 13px;
 color: #333;
 }
-.closeQuestion p{
-  margin-bottom: 16px;
-}
+
 .closeQuestion .btns{
+  margin-top: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -399,54 +390,7 @@ cursor: pointer;
 .closeQuestion .btns .yes{
   margin-right: 10px;
 }
-/*评价*/
-.dialog-box-componet .title{
-  font-size: 18px;
-color: #333333;
-font-weight: bold;
-margin-bottom: 24px;
-text-align: center;
-}
-.dialog-box-componet .ratebox{
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  font-size: 14px;
-  margin-bottom: 16px;
-}
-.dialog-box-componet .rate{
-  margin-right: 25px;
-}
-.dialog-box-componet .tagbox{
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-}
-.dialog-box-componet .tagbox .item{
-  display: block;
-   height: 25px;
-  line-height: 25px;
-  text-align: center;
-  border: 1px solid #D8D8D8;
-border-radius: 4px;
-border-radius: 4px;
-font-size: 12px;
-color: #666666;
-margin-right: 8px;
-cursor: pointer;
-padding: 0 10px;
-}
-.dialog-box-componet .tagbox .item.on{
-  color: #33C8DF;
-  border-color: #33C8DF;
-}
-.dialog-box-componet .inp{
-  border: 1px solid #D8D8D8;
-border-radius: 4px;
-border-radius: 4px;
-margin-top: 16px;
-margin-bottom: 32px;
-}
+
 
 /*没有权益提交用户信息*/
   .dialog-box .title{
@@ -554,7 +498,7 @@ font-weight: bold;
 .hidemask{
   position: absolute;
   z-index: 99;
-  background: rgba(222,222,222,0.6);
+  background: rgba(240,240,240,0.6);
   top: 0;
   left: 0;
   right: 0;
@@ -710,9 +654,7 @@ cursor: pointer;
 .common-message .dialog-box .btn-sub{
   margin: 24px auto;
 }
-.common-message .dialog-box-componet .btn-sub{
-  margin-bottom: 24px;
-}
+
 .common-message .dialog-box .custom-tel{
   font-size: 12px;
 color: #666666;

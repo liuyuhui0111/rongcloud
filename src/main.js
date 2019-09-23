@@ -10,7 +10,8 @@ import './plugins/element';
 
 import '@/assets/css/common.css';
 import '@/assets/css/reset-element.css';
-
+// 神策埋点
+import '@/assets/plugins/sensors';
 
 Vue.config.productionTip = false;
 Vue.use(mixin);

@@ -5,7 +5,7 @@ import store from '@/store';
 
 
 const axios = Axios.create({
-  timeout: 1000 * 60, // 超时时间60s
+  timeout: 1000 * 60 * 3, // 超时时间60s
   // baseURL: '',
   withCredentials: false, // 跨域请求时，允许其他域设置自身站点下的cookie
   cache: false,

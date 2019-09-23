@@ -7,7 +7,6 @@ import {
   getWaitNum,
   endEvaluate,
   getExpertQuestion,
-  expertEvaluate,
   getToken,
   getInQuestion,
   getIMById,
@@ -25,14 +24,17 @@ import {
   validByPhone,
 } from '@/assets/utils/validator';
 import COMMON_ENV from '@/config/env';
+import rate from './rate.vue';
 
 export default {
   name: 'message',
+  components: {
+    rate,
+  },
   data() {
     return {
       name: 'message',
       tel: '40089098887', // 客服电话
-      isShowPersonnNum: true, // 展示等待人数
       boolFalse: false,
       dialogRightVisible: false, // 无权益用户信息弹窗
       dialogCompentVisible: false, // 评分弹窗
@@ -73,7 +75,7 @@ export default {
         name: '',
         tel: '',
       },
-      colors: ['#33C8DF', '#33C8DF', '#33C8DF'],
+
       rateParam: { // 评分信息
         rateVal: 5,
         rateTag: [0, 0, 0],
@@ -98,12 +100,19 @@ export default {
 
       endTimer: null, // 结束咨询倒计时
       curUploadFileId: -1, // 存储当前正在上传的文件id 上传成功后动态修改对应消息记录
+      loopNum: 0, // 轮询120次  获取失败就提示关闭
+      isShowRateMesBox: false, // 显示评论消息
+      endFlag: true,
+
     };
   },
   created() {
   },
   async mounted() {
     //
+    // debugger
+    this.resetData();
+    console.log(COMMON_ENV.appkey);
     let params = {
       token: this.curUserData.token,
       // token: ,
@@ -220,7 +229,7 @@ export default {
         this.dialogQuestion = true;
       }
     },
-    async init() {
+    async init(type) {
       console.log(this.curUserData, this.curTargetUserData);
 
       //  获取历史聊天记录
@@ -239,21 +248,30 @@ export default {
         });
         list = arr;
       }
+
       // 获取聊天记录 至少应该有一条
       if (list.length < 1) {
         // 没有获取到聊天记录
         setTimeout(() => {
-          this.init();
+          this.loopNum += 1;
+          if (this.loopNum < 120) {
+            this.init('init');
+          } else {
+            this.$message('获取聊天记录失败，请稍后再试');
+            this.hideMessage(2000);
+          }
         }, 500);
         return;
       }
 
 
       let personnNum = -1;
-      let res = await getWaitNum({ expertId: this.curTargetUserData.expertId }); // 获取等待人数
-      console.log(res);
-      if (res.data.code === '0000') {
-        personnNum = res.data.data.counts;
+      if (type === 'init') {
+        let res = await getWaitNum({ expertId: this.curTargetUserData.expertId }); // 获取等待人数
+        console.log(res);
+        if (res.data.code === '0000') {
+          personnNum = res.data.data.counts;
+        }
       }
 
       let obj = {
@@ -301,7 +319,7 @@ export default {
       } else {
         throw new Error('appkey 和 token 不能为空');
       }
-      this.showMessage();
+      // this.showMessage();
       // this.getHistoryMessageListFn();
     },
 
@@ -330,7 +348,15 @@ export default {
         questionDesc: this.getExpertQuestionParam.question_desc,
       };
       console.log(params);
-      let res = await getExpertQuestion(params);
+      if (this.isCanRequest) {
+        this.isCanRequest = false;
+      } else {
+        return;
+      }
+      let res = await getExpertQuestion(params).catch(() => {
+        this.isCanRequest = true;
+      });
+      this.isCanRequest = true;
       if (res.data.code === '0000') {
         // this.hideMessage();
         let { data } = res.data;
@@ -339,7 +365,7 @@ export default {
           this.setcurTargetUserData({ name: data.expertName, ...data });
           this.dialogQuestion = false;
 
-          this.init();
+          this.init('init');
         } else if (data.status === -1
           || data.status === 0) {
           // 专家不在线
@@ -352,56 +378,57 @@ export default {
       }
       console.log(res);
     },
-    isShowTag(item) {
-      // 显示那些tag
-      return item.rate.indexOf(this.rateParam.rateVal) === -1;
-    },
-    startEndTime() {
-      console.log('倒计时结束开启===20分钟');
-      // 10分钟没清楚定时器就自动结束
-      clearTimeout(this.endTimer);
-      this.endTimer = setTimeout(() => {
-        // let time = formatDate(new Date().getTime());
-        // let message = `由于您长时间无消息本次咨询于${time} 结束`;
-        // this.systemMessage = message;
-        // this.sendMessageFn('InformationNotificationMessage');
-        this.endEvaluateFn();
-      }, 1000 * 60 * 20);
-    },
-    stopEndTime() {
-      clearTimeout(this.endTimer);
-    },
-    async endEvaluateFn() {
+
+
+    async endEvaluateFn(ev) {
       // 结束咨询
+      this.endFlag = true;
       let params = {
         id: window.vue.curTargetUserData.id,
         endType: '1', // 结束类型1用户结束2系统结束
       };
+      if (this.isCanRequest) {
+        this.isCanRequest = false;
+      } else {
+        return;
+      }
       let res = await endEvaluate(params);
+      this.isCanRequest = true;
       if (res.data.code === '0000') {
         // 结束咨询
         this.closeCofirmBox = false;
-        this.endEvaluateFnSuc();
+        this.hidemask = true;
+
+        if (ev) {
+          /*eslint-disable*/ 
+          ev.target.parentElement.style.display = 'none';
+          /* eslint-enable */
+          this.isShowRateMesBox = true;
+        } else {
+          this.dialogCompentVisible = true;
+        }
       } else {
         this.$message(res.data.message);
       }
     },
     endEvaluateFnSuc() {
       this.hidemask = true;
-      this.dialogCompentVisible = true;
+      if (!this.endFlag) {
+        this.isShowRateMesBox = true;
+      }
+
+      console.log(`自动结束时间：：：：：${new Date()}`, `结束标志hidemask${this.hidemask}++++dialogCompentVisible::${this.dialogCompentVisible}`);
+      this.$forceUpdate();
     },
     resetData() {
       // 初始化data数据
       this.groupId = '';
+      this.isShowRateMesBox = false;
       this.targetIdList = [];
       window.vue.mesListData[0] = { list: [] };
       this.setmesListData(window.vue.mesListData);
       this.mesData = '';
-      this.rateParam = { // 评分信息
-        rateVal: 5,
-        rateTag: [0, 0, 0],
-        rateMes: '', // 评价信息
-      };
+
       this.getExpertQuestionParam = {
         question_desc: '',
       };
@@ -417,45 +444,8 @@ export default {
     },
 
     async dialogCompentVisibleSub() {
-      // 提交评价
-      let flag = false;
-      let ids = [];
-      this.rateTagMap.forEach((item) => {
-        // 如果是选中状态 且包含当前分值 push
-        if (item.active
-          && (item.rate.indexOf(this.rateParam.rateVal) !== -1)) {
-          ids.push(item.id);
-          flag = true;
-        }
-      });
-      if (!flag && !this.rateParam.rateMes && this.rateParam.rateVal < 5) {
-        this.$message('请选择标签或评论专家的服务');
-        return;
-      }
-      // if (!this.rateParam.rateMes && this.rateParam.rateVal < 5) {
-      //   this.$message('请选择标签或评论专家的服务');
-      //   return;
-      // }
-
-      let params = {
-        account: this.curUserData.id,
-        evaluateContent: this.rateParam.rateMes,
-        evaluateFlag: ids.join(','),
-        evaluateScore: this.rateParam.rateVal,
-        expertName: this.curTargetUserData.name,
-        expertAccount: this.curTargetUserData.expertAccount,
-        distributorId: this.curUserData.distributorId,
-        questionId: this.curTargetUserData.id,
-      };
-
-      let res = await expertEvaluate(params);
-      if (res.data.code === '0000') {
-        this.$message('提交评价成功');
-        this.dialogCompentVisible = false;
-        // this.hideMessage(2000);
-      } else {
-        this.$message(res.data.message);
-      }
+      this.dialogCompentVisible = false;
+      this.hidemask = true;
     },
     async requestAuthFn() {
       // 点击用户授权图标
@@ -489,6 +479,7 @@ export default {
         return;
       }
 
+
       let params = {
         accountId: this.curUserData.accountId,
         name: this.userParam.name,
@@ -497,7 +488,13 @@ export default {
         productId: this.curUserData.productId,
 
       };
+      if (this.isCanRequest) {
+        this.isCanRequest = false;
+      } else {
+        return;
+      }
       let res = await addVipNotice(params);
+      this.isCanRequest = true;
       if (res.data.code === '0000') {
         this.dialogRightVisible = false;
         this.$message('提交成功');
@@ -509,11 +506,7 @@ export default {
     fileUploadFn(params) {
       return fileUpload(params);
     },
-    tagClick(item) {
-      /*eslint-disable*/ 
-      item.active = !item.active;
-       /* eslint-enable */
-    },
+
     sleep(time) {
       // 延迟几秒执行
       /*eslint-disable*/ 
@@ -582,7 +575,7 @@ export default {
       this.isShowMessageBox = false;
       this.isShowMessage = false;
       this.setcurUserData({});
-      this.resetData();
+
       this.$emit('hide');
       this.sendMessageToParent({ code: '200', data: 'hide' });
     },
@@ -599,7 +592,7 @@ export default {
       }
       this.sendMessageFn('TextMessage');
     },
-    sendQuestion(content) {
+    async sendQuestion(ev, content) {
       if (this.hidemask) return;
       this.messageData.content.content = content;
       let params = {
@@ -607,17 +600,28 @@ export default {
         objectName: 'RC:TxtMsg',
         content: JSON.stringify(this.messageData.content),
       };
+      let res = '';
       /*eslint-disable*/ 
+      if (this.isCanRequest) {
+        this.isCanRequest = false;
+      } else {
+        return;
+      }
       if (this.groupId) {
         params.toGroupId = this.groupId;
-        groupSend(params);
+        res = await groupSend(params);
       } else {
         params.toUserId = this.targetIdList[0];
-        send(params);
+        res = await send(params);
+      }
+      this.isCanRequest = true;
+      if(res.data.code === '0000'){
+        console.log(ev);
+        ev.target.parentElement.style.display = "none";
+        
       }
       /* eslint-enable */
       // this.sendMessageFn('TextMessage');
-      // this.stopEndTime();
     },
 
     async initGroupFn(chatRoomId, type) {
@@ -743,7 +747,8 @@ export default {
           id: obj.list.length,
           ...data,
         });
-        if (data.objectName === 'RC:InfoNtf'
+        console.log('extra:::::', data.content.extra, 'contentType:::', data.content.extra && data.content.extra.contentType);
+        if (data.content
         && data.content.extra
         && data.content.extra.contentType === 'MSG_END') {
         // 是系统消息  结束咨询
@@ -849,8 +854,8 @@ export default {
           // 后台自定义消息
           console.log('收到后台自定义消息', res);
           if (res.data.content.contentType === 'MSG_END_REQUEST') {
+            this.endFlag = false;
             this.pushList(res.data);
-            // this.startEndTime();
           }
         } else if (res.data.messageType === 'GroupNotificationMessage') {
           // 加入群组消息  转单
@@ -870,18 +875,13 @@ export default {
         console.log('拿到userid', res);
         // 拿到userid
         this.setUserId(res.data);
-
+        this.showMessage();
         // 获取聊天记录
         // this.getHistoryMessageListFn();
-      } else if (res.code === '-9999') {
-        // 断开连接
-        console.log('断开连接');
-        this.hideMessage();
       } else if (res.code === '1001') {
         this.$message(res.message);
-      } else if (res.code === '1002') {
-        this.$message(res.message);
-        this.hideMessage(2000);
+      } else {
+        console.log(res.message);
       }
     },
     sendMessageToParent(data) {
@@ -889,13 +889,16 @@ export default {
       window.parent.postMessage(data, '*');
     },
 
-    imgClick(item) {
-      console.log(item, '点击图片消息');
-      if (item.content.messageName === 'ImageMessage') {
-        window.open(item.content.imageUri, '_blank');
-      } else {
-        window.open(item.content.fileUrl, '_blank');
+    imgClick(url) {
+      if (document.getElementById('elemIF')) {
+        document.body.removeChild(document.getElementById('elemIF'));
       }
+
+      let elemIF = document.createElement('iframe');
+      elemIF.id = 'elemIF';
+      elemIF.src = url;
+      elemIF.style.display = 'none';
+      document.body.appendChild(elemIF);
     },
 
     async uploadImg(content, fparams) {
@@ -1226,9 +1229,17 @@ export default {
       }
     },
 
+    async imloginOut(mes){
+      // im异常情况 提示  退出登录
+      console.log(mes);
+      await this.$$confirm(mes,'确定','','',true);
+      this.hideMessage();
+    },
+
 
     rongInit(params) {
       // 容联初始化
+      console.log(params)
       let oThis = this;
       let { RongIMLib } = window;
       let { Protobuf } = window;
@@ -1247,6 +1258,7 @@ export default {
 
 
       RongIMClient.init(appkey, null, config);
+      oThis.showMessage();
       RongIMClient.setConnectionStatusListener({
         onChanged(status) {
           
@@ -1254,6 +1266,7 @@ export default {
             case RongIMLib.ConnectionStatus.CONNECTED:
             case 0:
               console.log('连接成功');
+              oThis.showMessage();
               oThis.addPromptInfo({ code: status, message: '' });
               break;
 
@@ -1271,25 +1284,51 @@ export default {
 
             case RongIMLib.ConnectionStatus.NETWORK_UNAVAILABLE:
             case 3:
-              oThis.addPromptInfo({ code: '1001', message: '网络不可用' });
+              // oThis.addPromptInfo({ code: '1001', message: '网络不可用' });
+              oThis.$message('网络不可用,请检查网络');
               break;
 
             case RongIMLib.ConnectionStatus.CONNECTION_CLOSED:
             case 4:
-              oThis.addPromptInfo({ code: '-9999', message: '未知原因，连接关闭' });
+              // oThis.addPromptInfo({ code: '404', message: '未知原因，连接关闭' });
+              // 尝试重连
+              RongIMClient.reconnect({
+                onSuccess:function(){
+                 //重连成功
+                },
+                onError:function(){
+                 //重连失败
+                  oThis.imloginOut('未知原因，连接关闭');
+                }
+              });
               break;
 
             case RongIMLib.ConnectionStatus.KICKED_OFFLINE_BY_OTHER_CLIENT:
             case 6:
-              oThis.addPromptInfo({ code: '1002', message: '用户账户在其他设备登录，本机会被踢掉线' });
+              // oThis.addPromptInfo({ code: '1002', message: '用户账户在其他设备登录，本机会被踢掉线' });
+              oThis.imloginOut('用户账户已在其他设备登录');
+              // oThis.hideMessage(2000);
               break;
 
             case RongIMLib.ConnectionStatus.DOMAIN_INCORRECT:
             case 12:
-              oThis.addPromptInfo({ code: '1002', message: '当前运行域名错误，请检查安全域名配置' });
+              // oThis.addPromptInfo({ code: '1002', message: '当前运行域名错误，请检查安全域名配置' });
+              oThis.imloginOut('当前运行域名错误，请检查安全域名配置');
+              // oThis.hideMessage(2000);
               break;
             default:
-              oThis.addPromptInfo({ code: '404', message: '服务器返回错误' });
+              // oThis.addPromptInfo({ code: '404', message: '未知原因，连接关闭' });
+              // 尝试重连
+              RongIMClient.reconnect({
+                onSuccess:function(){
+                 //重连成功
+                },
+                onError:function(){
+                 //重连失败
+                  oThis.imloginOut('未知原因，连接关闭');
+                  // oThis.hideMessage(2000);
+                }
+              });
           }
         },
       });
@@ -1308,12 +1347,26 @@ export default {
       RongIMClient.connect(token, {
         onSuccess(userId) {
           oThis.addPromptInfo({ code: '0000', data: userId });
+          oThis.showMessage();
         },
         onTokenIncorrect() {
-          oThis.addPromptInfo({ code: '0002', data: 'token无效' });
+          oThis.addPromptInfo({ code: '0002', message: 'token无效' });
+          oThis.imloginOut('token无效，请重新登录');
+          // oThis.hideMessage(2000);
         },
         onError(errorCode) {
-          oThis.addPromptInfo(errorCode);
+          oThis.addPromptInfo({code:errorCode,message:'连接失败'});
+          // 尝试重连
+          RongIMClient.reconnect({
+            onSuccess:function(){
+             //重连成功
+            },
+            onError:function(){
+             //重连失败
+              oThis.imloginOut('未知原因，连接关闭');
+              // oThis.hideMessage(2000);
+            }
+          });
         },
       }, null);
     }
