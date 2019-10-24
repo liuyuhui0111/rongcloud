@@ -1,6 +1,8 @@
 
 /* eslint-disable */
 let COMMON_ENV = {
+	name:'',	//产品名称  接口获取
+	version:'',		//版本号 接口获取 
   SSO_URL: 'http://test.5ifapiao.com:8888', // 单点登录相关地址
   CLIENT_ID:'fatc',		//登录对接CLIENT_ID
 	COMMON_REPLACE_URL:'COMMONREPLACEURL',		//#号替换字段?COMMONREPLACEURL=
@@ -13,7 +15,7 @@ let COMMON_ENV = {
 };
 if (process.env.VUE_APP_ENV === 'production') {
 	// 生产环境
-  COMMON_ENV.SSO_URL = 'https://sso.ele-cloud.com';
+  COMMON_ENV.SSO_URL = 'https://efats.utax360.cn';
   COMMON_ENV.appkey = 'y745wfm8yq6av'; //融云appkey
 } else if (process.env.VUE_APP_ENV === 'pre') {
 	// 预发环境

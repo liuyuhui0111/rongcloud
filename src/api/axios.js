@@ -31,7 +31,7 @@ axios.interceptors.request.use(
         config.headers.httpHost = window.location.href || '';
         config.headers.userId = store.getters.curUserData.userId ? store.getters.curUserData.userId : '-1';
 
-        if(config.isLoading){
+        if(!config.isHideLoading){
           // 如果为true 请求提示loadding
           requestList.push(config.url);
           if(!COMMON_LOADING){

@@ -104,6 +104,9 @@ export default {
       isShowRateMesBox: false, // 显示评论消息
       endFlag: true,
 
+
+      isShowMask: false, // 弹窗遮罩层
+
     };
   },
   created() {
@@ -111,38 +114,45 @@ export default {
   async mounted() {
     //
     // debugger
-    this.resetData();
-    console.log(COMMON_ENV.appkey);
-    let params = {
-      token: this.curUserData.token,
+    try {
+      this.resetData();
+      console.log(COMMON_ENV.appkey);
+      let params = {
+        token: this.curUserData.token,
       // token: ,
-    };
-    if (!this.imtoken) {
-      let res = await getToken(params);
-      console.log(res);
-      if (res.data.code === '0000') {
-        let token = res.data.data.imToken;
-        this.setImToken(token);
+      };
+      if (!this.imtoken) {
+        let res = await getToken(params);
+        console.log(res);
+        if (res.data.code === '0000') {
+          let token = res.data.data.imToken;
+          this.setImToken(token);
 
-        let obj = JSON.parse(JSON.stringify(this.curUserData));
-        obj.token = 'true';
-        obj.id = res.data.data.username;
-        obj.accountId = res.data.data.userId;
-        obj.account = res.data.data.username;
-        obj.name = res.data.data.nickname;
-        obj.icon = res.data.data.headImg;
-        this.setcurUserData({ ...res.data.data, ...obj });
-        // this.setRongCloudUser({ ...res.data.data, ...obj });
-        this.params.token = token;
+          let obj = JSON.parse(JSON.stringify(this.curUserData));
+          obj.token = 'true';
+          obj.id = res.data.data.username;
+          obj.accountId = res.data.data.userId;
+          obj.account = res.data.data.username;
+          obj.name = res.data.data.nickname;
+          obj.icon = res.data.data.headImg;
+          this.setcurUserData({ ...res.data.data, ...obj });
+          // 埋点登录id
+
+          // this.setRongCloudUser({ ...res.data.data, ...obj });
+          this.params.token = token;
+        } else {
+          this.$message(`${res.data.message}`);
+          this.hideMessage(2000);
+          return;
+        }
       } else {
-        this.$message(`${res.data.message}`);
-        this.hideMessage(2000);
-        return;
+        this.params.token = this.imtoken;
       }
-    } else {
-      this.params.token = this.imtoken;
+      this.checkCurUser();
+    } catch (err) {
+      //
+      this.hideMessageFn();
     }
-    this.checkCurUser();
   },
   methods: {
     async checkCurUser() {
@@ -166,6 +176,7 @@ export default {
         // 提交问题
         // this.showMessage();
         this.dialogQuestion = true;
+        this.isShowMask = true;
         return;
       }
 
@@ -215,6 +226,7 @@ export default {
         } else if (data.status === 0) {
           // 没有
           this.dialogQuestion = true;
+          this.isShowMask = true;
         } else if (data.status === 2) {
           // 没有
           await this.confirmFn('6');
@@ -227,6 +239,7 @@ export default {
         }
       } else {
         this.dialogQuestion = true;
+        this.isShowMask = true;
       }
     },
     async init(type) {
@@ -301,11 +314,11 @@ export default {
         icon: window.vue.mesListData[0].user.icon,
         name: window.vue.mesListData[0].user.name,
       };
-      this.targetIdList = [window.vue.mesListData[0].target.id];
+      window.targetIdList = [window.vue.mesListData[0].target.id];
       if (window.vue.curTargetUserData.expertFromId) {
         // 如果有转单id  代表转单
-        this.groupId = window.vue.curTargetUserData.code;
-        this.targetIdList = [window.vue.mesListData[0].target.id,
+        window.groupId = window.vue.curTargetUserData.code;
+        window.targetIdList = [window.vue.mesListData[0].target.id,
           window.vue.curTargetUserData.expertFromId];
       }
 
@@ -364,12 +377,14 @@ export default {
           // 获取成功
           this.setcurTargetUserData({ name: data.expertName, ...data });
           this.dialogQuestion = false;
+          this.isShowMask = false;
 
           this.init('init');
         } else if (data.status === -1
           || data.status === 0) {
           // 专家不在线
           this.dialogQuestion = false;
+          this.isShowMask = false;
           await this.confirmFn('6');
           this.hideMessage();
         }
@@ -381,7 +396,8 @@ export default {
 
 
     async endEvaluateFn(ev) {
-      // 结束咨询
+      // 结束咨询 已结束咨询直接返回
+      if (this.hidemask) return;
       this.endFlag = true;
       let params = {
         id: window.vue.curTargetUserData.id,
@@ -398,11 +414,15 @@ export default {
         // 结束咨询
         this.closeCofirmBox = false;
         this.hidemask = true;
-
+        document.querySelector('.hidemask').style.display = 'block';
+        /*eslint-disable*/ 
+        let evlist = document.querySelectorAll('.closeQuestion-btns');
+        evlist.forEach((item)=>{
+          item.style.display = 'none';
+        })
+        // ev.target.parentElement.style.display = 'none';
+        /* eslint-enable */
         if (ev) {
-          /*eslint-disable*/ 
-          ev.target.parentElement.style.display = 'none';
-          /* eslint-enable */
           this.isShowRateMesBox = true;
         } else {
           this.dialogCompentVisible = true;
@@ -413,6 +433,7 @@ export default {
     },
     endEvaluateFnSuc() {
       this.hidemask = true;
+      document.querySelector('.hidemask').style.display = 'block';
       if (!this.endFlag) {
         this.isShowRateMesBox = true;
       }
@@ -422,9 +443,9 @@ export default {
     },
     resetData() {
       // 初始化data数据
-      this.groupId = '';
+      window.groupId = '';
       this.isShowRateMesBox = false;
-      this.targetIdList = [];
+      window.targetIdList = [];
       window.vue.mesListData[0] = { list: [] };
       this.setmesListData(window.vue.mesListData);
       this.mesData = '';
@@ -436,6 +457,7 @@ export default {
     again() {
       this.resetData();
       this.hidemask = false;
+      document.querySelector('.hidemask').style.display = 'none';
       this.isShowMessage = false;
       this.checkCurUser();
     },
@@ -444,8 +466,11 @@ export default {
     },
 
     async dialogCompentVisibleSub() {
+      // 评价成功
       this.dialogCompentVisible = false;
+      this.isShowRateMesBox = false;
       this.hidemask = true;
+      document.querySelector('.hidemask').style.display = 'block';
     },
     async requestAuthFn() {
       // 点击用户授权图标
@@ -560,6 +585,7 @@ export default {
           let res = await this.$$confirm('您已经填写了要咨询的问题，确定关闭吗？');
           if (res.code === '0000') {
             this.dialogQuestion = false;
+            this.isShowMask = false;
             this.hideMessageFn();
           }
           return;
@@ -594,6 +620,11 @@ export default {
     },
     async sendQuestion(ev, content) {
       if (this.hidemask) return;
+      /*eslint-disable*/
+      document.querySelectorAll('.closeQuestion-btns').forEach((item) => {
+        item.style.display = 'none';
+      });
+      /* eslint-enable */
       this.messageData.content.content = content;
       let params = {
         fromUserId: this.userId,
@@ -607,11 +638,11 @@ export default {
       } else {
         return;
       }
-      if (this.groupId) {
-        params.toGroupId = this.groupId;
+      if (window.groupId) {
+        params.toGroupId = window.groupId;
         res = await groupSend(params);
       } else {
-        params.toUserId = this.targetIdList[0];
+        params.toUserId = window.targetIdList[0];
         res = await send(params);
       }
       this.isCanRequest = true;
@@ -677,7 +708,7 @@ export default {
         //   extra:this.messageData.content.extra,
         //   messageName:'InformationNotificationMessage',
         // };
-        return sendMessage(this.targetIdList, sysObj, false, this.groupId);
+        return sendMessage(window.targetIdList, sysObj, false, window.groupId);
       }
       return new Promise((resolve) => {
         resolve({ code: '404' });
@@ -713,7 +744,7 @@ export default {
       // }
       this.messageData.content.messageName = messageName;
 
-      let res = await sendMessage(this.targetIdList, this.messageData, isCreate, this.groupId);
+      let res = await sendMessage(window.targetIdList, this.messageData, isCreate, window.groupId);
       this.sendMesResult(res);
       return new Promise((resolve) => {
         resolve(res);
@@ -729,6 +760,12 @@ export default {
         } else if (res.message.content.messageName === 'ImageMessage'
           || res.message.content.messageName === 'FileMessage') {
           this.pushList(res.message, 'edit');
+          // 埋点
+          if (res.message.content.messageName === 'ImageMessage') {
+            this.yszj_sendPicture();
+          } else {
+            this.yszj_sendFile();
+          }
         } else {
           this.pushList(res.message);
           // this.finish(res.message);
@@ -821,7 +858,6 @@ export default {
       if (res.code === '9999') {
         console.log('收到消息', res);
         // 隐藏等待人数消息
-
         // 判断咨询单id  与当前咨询单id是否一致  不一致不做处理  可能是离线留言
         if (res.data.content.extra
           && (window.vue.curTargetUserData.id !== res.data.content.extra.mesid)) {
@@ -861,13 +897,13 @@ export default {
           // 加入群组消息  转单
           window.vue.curTargetUserData.name = res.data.content.data.toExpertName; // 转单专家name
           this.setcurTargetUserData(window.vue.curTargetUserData);
-          this.groupId = res.data.content.data.targetGroupName; // 群组id
+          window.groupId = res.data.content.data.targetGroupName; // 群组id
 
           let tagetid = res.data.content.data.operatorNickname; // 被转专家id
           let changeid = res.data.senderUserId; // 转单专家id
-          this.targetIdList = [tagetid, changeid];
+          window.targetIdList = [tagetid, changeid];
 
-          console.log('转单 加入群组消息', res.data, this.groupId, this.targetIdList);
+          console.log('转单 加入群组消息', res.data, window.groupId, window.targetIdList);
         } else {
           this.pushList(res.data);
         }
@@ -875,6 +911,7 @@ export default {
         console.log('拿到userid', res);
         // 拿到userid
         this.setUserId(res.data);
+        this.sensors_login(res.data);
         this.showMessage();
         // 获取聊天记录
         // this.getHistoryMessageListFn();
@@ -992,11 +1029,23 @@ export default {
       };
     },
     fileChange(ev, type) {
+      if (!this.isCanUpLoadFile) {
+        this.$message('有文件正在上传中...');
+        /*eslint-disable*/ 
+      // 清除value  避免第二次不触发change
+      ev.target.value = '';
+       /* eslint-enable */
+        return;
+      }
       let postFiles = Array.prototype.slice.call(ev.target.files);
       let file = postFiles[0];
       if (type === 'img') {
         if (file.size / 1024 > this.imgMaxSize) {
           this.$message(`图片大小必须小于${this.imgMaxSize}kb`);
+          /*eslint-disable*/ 
+      // 清除value  避免第二次不触发change
+      ev.target.value = '';
+       /* eslint-enable */
           // 清除value  避免第二次不触发change
           return;
         }
@@ -1004,14 +1053,18 @@ export default {
       } else if (type === 'file') {
         if (file.size / (1024 * 1024) > this.fileMaxSize) {
           this.$message(`文件大小必须小于${this.fileMaxSize}M`);
+          /*eslint-disable*/ 
+      // 清除value  避免第二次不触发change
+      ev.target.value = '';
+       /* eslint-enable */
           return;
-          // 清除value  避免第二次不触发change
         }
         this.isCanUpLoadFile = false;
         // 上传文件
         this.uploadFile(file);
       }
       /*eslint-disable*/ 
+      // 清除value  避免第二次不触发change
       ev.target.value = '';
        /* eslint-enable */
     },
@@ -1057,20 +1110,6 @@ export default {
       };
     },
 
-    upload(type) {
-      if (!this.isCanUpLoadFile) {
-        this.$message('有文件正在上传中...');
-        return;
-      }
-      if (type === 'img') {
-        // 上传图片
-        let oImgInput = document.querySelector('#picture');
-        this.dispatch(oImgInput);
-      } else if (type === 'file') {
-        let oFileInput = document.querySelector('#file');
-        this.dispatch(oFileInput);
-      }
-    },
     /*eslint-disable*/ 
     
     emojiClickItem(item){
@@ -1104,6 +1143,7 @@ export default {
     confirm(message,subtext,canceltext,title,hideCancelBtn){
       // 
       if(!message) return;
+      this.isShowMask = true;
       let showCancelButton = !hideCancelBtn;  //隐藏btn按钮
       return new Promise((resolve)=>{
         this.$confirm(message, title || '', {
@@ -1112,9 +1152,11 @@ export default {
           showCancelButton,
           closeOnClickModal:false,
         }).then(() => {
-          resolve({code:'0000'})
+          resolve({code:'0000'});
+          this.isShowMask = false;
         }).catch(() => {
-          resolve({code:'404'})         
+          resolve({code:'404'})    
+          this.isShowMask = false;     
         });
 
       })
@@ -1235,7 +1277,25 @@ export default {
       await this.$$confirm(mes,'确定','','',true);
       this.hideMessage();
     },
-
+    reconnectFn(mes){
+      let oThis = this;
+      let { RongIMClient } = window.RongIMLib;
+      RongIMClient.reconnect({
+        onSuccess() {
+          // 重连成功
+        },
+        onError() {
+          // 重连失败
+          console.log('重连提示：：：'+mes);
+          oThis.imloginOut(mes);
+          // oThis.hideMessage(2000);
+        },
+      },{
+        auto: true,
+        url: window.location.href,
+        rate: [100, 1000, 3000, 6000, 10000]
+      });
+    },
 
     rongInit(params) {
       // 容联初始化
@@ -1285,22 +1345,14 @@ export default {
             case RongIMLib.ConnectionStatus.NETWORK_UNAVAILABLE:
             case 3:
               // oThis.addPromptInfo({ code: '1001', message: '网络不可用' });
-              oThis.$message('网络不可用,请检查网络');
+              oThis.reconnectFn('网络不可用,请检查网络');
               break;
 
             case RongIMLib.ConnectionStatus.CONNECTION_CLOSED:
             case 4:
               // oThis.addPromptInfo({ code: '404', message: '未知原因，连接关闭' });
               // 尝试重连
-              RongIMClient.reconnect({
-                onSuccess:function(){
-                 //重连成功
-                },
-                onError:function(){
-                 //重连失败
-                  oThis.imloginOut('未知原因，连接关闭');
-                }
-              });
+              oThis.reconnectFn('未知原因，连接关闭');
               break;
 
             case RongIMLib.ConnectionStatus.KICKED_OFFLINE_BY_OTHER_CLIENT:
@@ -1319,16 +1371,7 @@ export default {
             default:
               // oThis.addPromptInfo({ code: '404', message: '未知原因，连接关闭' });
               // 尝试重连
-              RongIMClient.reconnect({
-                onSuccess:function(){
-                 //重连成功
-                },
-                onError:function(){
-                 //重连失败
-                  oThis.imloginOut('未知原因，连接关闭');
-                  // oThis.hideMessage(2000);
-                }
-              });
+              oThis.reconnectFn('未知原因，连接关闭');
           }
         },
       });
@@ -1350,23 +1393,12 @@ export default {
           oThis.showMessage();
         },
         onTokenIncorrect() {
-          oThis.addPromptInfo({ code: '0002', message: 'token无效' });
           oThis.imloginOut('token无效，请重新登录');
           // oThis.hideMessage(2000);
         },
         onError(errorCode) {
-          oThis.addPromptInfo({code:errorCode,message:'连接失败'});
           // 尝试重连
-          RongIMClient.reconnect({
-            onSuccess:function(){
-             //重连成功
-            },
-            onError:function(){
-             //重连失败
-              oThis.imloginOut('未知原因，连接关闭');
-              // oThis.hideMessage(2000);
-            }
-          });
+          oThis.reconnectFn('未知原因，连接关闭');
         },
       }, null);
     }

@@ -3,6 +3,7 @@ import Router from 'vue-router';
 import NProgress from 'nprogress';
 // import routes from './routeConf';
 import 'nprogress/nprogress.css';
+import { downloadinfo } from '@/api/apis';
 
 Vue.use(Router);
 
@@ -40,6 +41,15 @@ const router = new Router({
 });
 
 router.beforeEach(async (to, from, next) => {
+  if (!(window.COMMON_ENV && window.COMMON_ENV.version)) {
+    let res = await downloadinfo().catch(() => {
+      next();
+    });
+    if (res && res.data.code === '0000') {
+      window.COMMON_ENV.version = res.data.data.versionNum;
+      window.COMMON_ENV.name = res.data.data.name;
+    }
+  }
   NProgress.start();
   next();
 });
@@ -48,15 +58,29 @@ router.afterEach(async (to) => {
   document.title = to.meta.title || '优税专家';
   NProgress.done();
   // 埋点相关
-  window.vue.$nextTick(() => {
-    // if(store.getters.token){
-    //   window.sensors.login(store.getters.token);
-    // }
-    // window.sensors.track('frompath',{"frompath":from.fullPath,"topath":to.fullPath});
-    window.sensors.quick('autoTrackSinglePage', {
-      platForm: 'web',
+  if (window.vue) {
+    window.vue.$nextTick(() => {
+      // if(store.getters.token){
+      //   window.sensors.login(store.getters.token);
+      // }
+      // window.sensors.track('frompath',{"frompath":from.fullPath,"topath":to.fullPath});
+      window.sensors.quick('autoTrackSinglePage', {
+        platForm: 'web',
+      });
+      if (window.vue.userId) {
+        window.sensors.login(window.vue.userId);
+      }
+      if (window.COMMON_ENV && window.COMMON_ENV.version) {
+        let commonData = {
+          productName: window.COMMON_ENV.name,
+          platformType: 'web',
+          version: window.COMMON_ENV.version,
+        };
+        // 设置公共属性
+        window.sensors.registerPage(commonData);
+      }
     });
-  });
+  }
   // ...
 });
 

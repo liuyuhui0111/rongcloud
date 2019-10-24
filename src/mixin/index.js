@@ -58,6 +58,7 @@ export default {
             },
           ],
           manageMessageList: [], // 消息管理
+          confirmManageMessageList: [], // confirm消息管理
         };
       },
       computed: {
@@ -82,13 +83,37 @@ export default {
           this.setToken('');
           loginout();
         },
+        delItemFromList(curitem, list) {
+          let i = -1;
+          list.forEach((item, index) => {
+            if (curitem === item) {
+              i = index;
+            }
+          });
+          if (i !== -1) {
+            list.splice(i, 1);
+          }
+          console.log(this.confirmManageMessageList);
+        },
+
         $$confirm(message, subtext, canceltext, title, hideCancelBtn) {
+          let flag = true;
+          this.confirmManageMessageList.forEach((item) => {
+            if (item === message) {
+              flag = false;
+            }
+          });
+
+
           let showCancelButton = !hideCancelBtn; // 隐藏btn按钮
           return new Promise((resolve) => {
-            if (!message) {
+            if (!message || !flag) {
               resolve({ code: '404' });
               return;
             }
+            // 将消息push到管理器里
+            this.confirmManageMessageList.push(message);
+
             this.$confirm(message, title || '', {
               confirmButtonText: subtext || '确定',
               cancelButtonText: canceltext || '取消',
@@ -96,8 +121,10 @@ export default {
               closeOnClickModal: false,
               customClass: 'common-dialog-message-box',
             }).then(() => {
+              this.delItemFromList(message, this.confirmManageMessageList);
               resolve({ code: '0000' });
             }).catch(() => {
+              this.delItemFromList(message, this.confirmManageMessageList);
               resolve({ code: '404' });
             });
           });

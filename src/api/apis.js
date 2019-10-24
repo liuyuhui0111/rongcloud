@@ -178,3 +178,10 @@ export function groupSend(params) {
   const url = '/login-expert/groupSend';
   return axios.post(BASE_URL + url, params || {});
 }
+
+export function downloadinfo() {
+  // 获取版本号
+  const url = '/api-gateway/product/aosp-product/product/downloadInfo';
+
+  return axios.get(url, { params: { id: '4dcf25b4eda74b8f845cb7cd731df07f' } });
+}

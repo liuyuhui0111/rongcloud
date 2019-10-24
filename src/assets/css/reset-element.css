@@ -103,4 +103,6 @@
 .el-popover{
     padding: 0;
 }
-
+.v-modal{
+    background: #e0e0e0;
+}

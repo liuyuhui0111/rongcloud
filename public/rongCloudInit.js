@@ -2,6 +2,7 @@
   var COMMONID = 'ExpectInitRongCloudBoxId';
   var iframeSrc = window.rongCloudConfigData.host + '/expertclient/#/index';
   var iframeOrigin = window.rongCloudConfigData.host;
+  var cssText = "width:100%;height:100%;max-height:600px;max-width:600px;position:fixed;right:0;bottom:0;z-index:99999;border:1px solid #ccc;box-shadow:0px 0px 3px 0 #ccc;"
   window.initRongCloud = function(userData){
     // userData  参数
       // id: 'l849643088@163.com',
@@ -22,6 +23,10 @@
     }
     if(!document.getElementById(COMMONID)){
       // 还没有初始化
+      if(document.getElementById(COMMONID).style.display === 'block'){
+        document.getElementById(COMMONID).style.display = 'none';
+        return;
+      }
       var timer = setInterval(function(){
         if(document.getElementById(COMMONID)){
           clearInterval(timer);
@@ -33,7 +38,7 @@
     }
 
     function sendMessage(){
-        document.getElementById(COMMONID).style.cssText="display: -webkit-flex;display: -moz-flex;display: -ms-flex;display: -o-flex;display: flex;justify-content: center;align-items: center;background: rgba(0,0,0,0.5);position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;";
+        document.getElementById(COMMONID).style.cssText='display:block;'+cssText;
         var contentWindow = document.getElementById(COMMONID+'iframe').contentWindow;
         contentWindow.postMessage({code:'0000',data:userData}, iframeOrigin);
     }
@@ -63,9 +68,9 @@
     oIframe.frameborder="0";
     oIframe.id = COMMONID+'iframe';
     oIframe.src=iframeSrc+'?t='+new Date().getTime();
-    oIframe.style.cssText = 'width:100%;height:100%;max-height:600px;max-width:600px;';
+    oIframe.style.cssText = 'width:100%;height:100%;max-height:600px;max-width:600px;border:none;';
     oDiv.id=COMMONID;
-    oDiv.style.cssText="display:none;justify-content: center;align-items: center;background: rgba(0,0,0,0.5);position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;";
+    oDiv.style.cssText='display:none;'+cssText;
     oDiv.appendChild(oIframe);
     oBody.appendChild(oDiv);
   }
@@ -100,3 +105,17 @@
 // questionDesc  string  
 // 必须
 // 问题描述
+
+
+// var iframe = document.createElement("iframe");
+// iframe.src = "http://www.planabc.net";
+// if (iframe.attachEvent){    
+//     iframe.attachEvent("onload", function(){        
+//         alert("Local iframe is now loaded.");    
+//     });
+// } else {    
+//     iframe.onload = function(){        
+//         alert("Local iframe is now loaded.");    
+//     };
+// }
+// document.body.appendChild(iframe);

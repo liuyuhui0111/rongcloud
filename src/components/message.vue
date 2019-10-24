@@ -7,18 +7,36 @@
       <template v-if="isShowMessage">
 
         <div class="headerbox">
-          <span class="title">{{curTargetUserData.name}} 咨询中</span>
-          <div class="btns">
-          <span @click="hideMessage()" class="close">-</span>
+          <span class="title">{{curTargetUserData.name}}</span>
+          <span @click="hideMessage()" class="close"></span>
+           <!-- 结束 -->
+          <el-popover
+          placement="left"
+          width="168"
+          v-model="closeCofirmBox"
+          trigger="click">
+          <div class="close-confirm-box">
+            <p>确定要结束咨询吗？</p>
+            <div class="btnbox">
+              <span @click="closeCofirmBox=false" class="cancel">取消</span>
+              <span @click="endEvaluateFn()" class="sub">确定</span>
+            </div>
           </div>
+          <span slot="reference"
+          class="icon-close">结束咨询</span>
+          </el-popover>
         </div>
       <!-- 聊天展示区域 -->
       <div id="meslist"
       class="meslist common-scroll-bar">
+
+
         <!-- 系统提示盒子 -->
         <div :personnNum="mesListData[0].personnNum"
         v-show="mesListData[0].personnNum>0" class="systemtips">
-            排队<span>{{mesListData[0].personnNum}}</span>人，请耐心等候专家回复
+          <p>
+              排队<span>{{mesListData[0].personnNum}}</span>人，请耐心等候专家回复
+          </p>
         </div>
         <!-- 系统提示占位盒子 -->
         <div v-show="mesListData[0].personnNum>0
@@ -53,17 +71,20 @@
           item.objectName != 'RC:InfoNtf'"
           class="name">{{item.content.extra.name}}</div>
 
-          <template v-if="item.objectName == 'RC:DxhyMsg'">
-            <div v-if="item.content.contentType =='MSG_END_REQUEST'"
-            class="closeQuestion">
-            <!-- 是否可以结束咨询 -->
-              <p>是否可以结束咨询？</p>
-              <div class="btns">
-                <span @click="endEvaluateFn($event)" class="yes">可以</span>
-                <span @click="sendQuestion($event,'我还有问题')" class="no">我还有问题</span>
-              </div>
+
+          <template v-if="item.objectName == 'RC:DxhyMsg'
+          && item.content.contentType =='MSG_END_REQUEST'">
+          <!-- 文本消息 -->
+            <div class="mes">
+            <p>是否可以结束咨询？</p>
+            <span class="after"></span>
+            </div>
+            <div class="closeQuestion-btns">
+              <span @click="endEvaluateFn()" class="yes">可以</span>
+              <span @click="sendQuestion($event,'我还有问题')" class="no">我还有问题</span>
             </div>
           </template>
+
 
           <template v-if="item.objectName == 'RC:TxtMsg'">
           <!-- 文本消息 -->
@@ -104,7 +125,7 @@
 
       <!-- 发送区域 -->
       <div class="sendbox">
-        <div v-if="hidemask" class="hidemask">
+        <div v-show="hidemask" class="hidemask">
           <!-- 禁用聊天遮罩层 -->
           <span class="btn-sub" @click="again()">再次咨询</span>
         </div>
@@ -141,24 +162,6 @@
           </el-popover> -->
 
 
-           <!-- 结束 -->
-          <el-popover
-          placement="top"
-          width="168"
-          v-model="closeCofirmBox"
-          trigger="click">
-          <div class="close-confirm-box">
-            <p>确定要结束咨询吗？</p>
-            <div class="btnbox">
-              <span @click="closeCofirmBox=false" class="cancel">取消</span>
-              <span @click="endEvaluateFn()" class="sub">确定</span>
-            </div>
-          </div>
-          <span slot="reference"
-          title="结束咨询"
-          class="iconfont iconjieshuzixun"></span>
-          </el-popover>
-
         </div>
         <div class="inp h60">
           <div v-if="isShowEmoji && emojiList.length>0"
@@ -190,7 +193,7 @@
       <div v-show="dialogQuestion" class="dialog-question">
           <div class="dialog-header">
             <span>优税专家</span>
-            <span @click="hideMessage()" class="close">-</span>
+            <p>财税问题·专业解答</p>
           </div>
           <div class="dialog-content">
             <p>请描述您要向专家咨询的问题，以便专家为您详细解答。</p>
@@ -205,7 +208,10 @@
             show-word-limit
             ></el-input>
             </div>
-            <span @click="getExpertQuestionFn()" class="btn-sub">发送</span>
+            <div class="btns">
+              <span @click="hideMessage()" class="btn-sub btn-cancel">取消</span>
+              <span @click="getExpertQuestionFn()" class="btn-sub">发送</span>
+            </div>
           </div>
       </div>
 
@@ -234,7 +240,7 @@
                 </el-input>
               </div>
             </div>
-            <span @click="addVipNoticeFn" class="btn-sub">提交</span>
+            <span @click="addVipNoticeFn" class="btn-sub auto">提交</span>
 
             <p class="custom-tel">您也可以拨打电话{{tel}}</p>
         </el-dialog>
@@ -255,8 +261,8 @@
         </el-dialog>
         </div>
       </div>
-
-
+      <!-- 遮罩层 -->
+      <div v-show="isShowMask" class="mask"></div>
       <!-- 上传压缩相关隐藏dom -->
 
       <canvas id="canvas" style="display:none;"></canvas>
@@ -276,14 +282,19 @@ export default message;
   .el-popover{
     min-width: 50px;
   }
+  .common-message .el-dialog__wrapper{
+    display: flex;
+    align-items: center;
+  }
   .common-message .inp .el-textarea__inner{
     border: none;
     
   }
   .common-message .inp.h60 .el-textarea__inner{
     overflow-y: auto;
-    height: 60px;
-    min-height: 60px;
+    height: 80px;
+    min-height: 80px;
+    font-size:12px;
   }
   .el-message-box__message p{
     text-align: center;
@@ -344,6 +355,50 @@ export default message;
 
 </style>
 <style scoped>
+/*是否可以结束咨询提示*/
+.closeQuestion-btns{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+}
+.closeQuestion-btns span{
+  display: block;
+  border: 1px solid #33C8DF;
+  color: #33C8DF;
+  text-align: center;
+  height: 30px;
+  line-height: 30px;
+  padding:0 15px;
+  border-radius: 15px;
+  margin-right: 20px;
+  cursor: pointer;
+}
+/* 结束咨询 */
+.icon-close{
+  cursor: pointer;
+  display: block;
+  position: absolute;
+  width: 80px;
+  height: 27px;
+  background: #FD8606;
+  border-radius: 30px 0 0 30px;
+  right: 0;
+  top: 74px;
+  z-index: 8;
+  color: #fff;
+  text-align: center;
+  line-height: 27px;
+}
+/* .icon-close:hover{
+  opacity: 0.1;
+} */
+/* 重写遮罩层背景 */
+.mask{
+  background: rgba(0,0,0,0.3);
+  z-index: 8;
+  
+}
 /*消息评分*/
 .ratemesbox{
   width: 328px;
@@ -356,40 +411,7 @@ float: left;
 padding: 16px;
 margin: 16px;
 }
-/*是否可以结束咨询提示*/
-.closeQuestion{
-  background: #FFFFFF;
-border: 1px solid #D8D8D8;
-border-radius: 4px;
-border-radius: 4px;
-box-sizing:border-box;
-padding: 16px;
-text-align: left;
-font-size: 13px;
-color: #333;
-}
 
-.closeQuestion .btns{
-  margin-top: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.closeQuestion .btns span{
-  padding: 5px 20px;
-  display: block;
-  border: 1px solid #33C8DF;
-border-radius: 4px;
-border-radius: 4px;
-text-align: center;
-font-size: 14px;
-color: #33C8DF;
-box-sizing:border-box;
-cursor: pointer;
-}
-.closeQuestion .btns .yes{
-  margin-right: 10px;
-}
 
 
 /*没有权益提交用户信息*/
@@ -415,7 +437,6 @@ cursor: pointer;
 /*弹窗*/
 .dialog-mask{
   position: absolute;
-  background: rgba(0,0,0,0.6);
   top: 0;
   left: 0;
   right: 0;
@@ -429,33 +450,38 @@ cursor: pointer;
 /*问题弹窗*/
 .dialog-question{
   position: absolute;
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  background: #fff;
-  left: 0;
-  top: 0;
-  z-index: 9;
+    width: 90%;
+    height: 74%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #F8FEFF;
+    left: 5%;
+    top: 13%;
+    z-index: 9;
+    border-radius: 4px;
+    box-sizing: border-box;
+    padding: 0 40px;
 }
 .dialog-header{
-  height: 50px;
-  line-height: 50px;
-  padding: 0 15px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 1px 0 0 rgba(0,0,0,0.15);
-  font-size: 14px;
-color: #333333;
-font-weight: bold;
+  padding: 18px 0;
+  font-weight: bold;
+  text-align: center;
+  border-bottom: 1px dashed #d5d5d5;
+  color: #33C8DF;
+  margin-top: 12px;
+}
+.dialog-header span{
+  font-size: 22px;
+}
+.dialog-header p{
+  font-size: 10px;
 }
 .dialog-content{
-  width: 85%;
+  width: 100%;
   margin: 0 auto;
 }
 .dialog-content p{
-  padding-top: 72px;
+  padding-top: 20px;
   padding-bottom: 16px;
   font-size: 14px;
   color: #333333;
@@ -478,16 +504,22 @@ font-weight: bold;
 .systemtips{
   position: fixed;
   width: 100%;
-  height: 32px;
-  line-height: 32px;
-  text-align: center;
   font-size: 12px;
   color: #333333;
-  background: #FFFBE6;
   z-index: 10;
 }
+.systemtips p{
+  display: block;
+  width: 280px;
+  height: 26px;
+  line-height: 26px;
+  background: #FFF0D2;
+  border-radius: 4px;
+  margin: 6px auto;
+  text-align: center;
+}
 .h34{
-  height: 32px;
+  height: 34px;
 }
 .systemtips span{
   color: #e6a23c;
@@ -564,25 +596,32 @@ cursor: pointer;
   z-index: 99;
 }
 .messagebox .headerbox{
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #FFFFFF;
-  box-shadow: 0 1px 0 0 rgba(0,0,0,0.15);
+  height: 44px;
+  line-height: 44px;
+  overflow: hidden;
+  background: #33C8DF;
+  color: #fff;
   font-size: 14px;
-  color: #333333;
-  padding: 0 16px;
-  font-weight: bold;
-  border-bottom: 1px solid #D8D8D8;
-  box-sizing:border-box;
 }
-.messagebox .headerbox .btns{
-  width: 30px;
-  height: 30px;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
+.messagebox .headerbox .title{
+  text-align: left;
+  padding-left: 16px;
+}
+.messagebox .headerbox .close{
+  width: 44px;
+  height: 44px;
+  float: right;
+  cursor: pointer;
+  position: relative;
+}
+.messagebox .headerbox .close:after{
+  content: "";
+  position: absolute;
+  width: 36%;
+  height: 2px;
+  background: #fff;
+  left: 26%;
+  top: 21px;
 }
 .dialog-header .close,
 .messagebox .headerbox .btns span{
@@ -597,7 +636,7 @@ cursor: pointer;
   border-radius: 100%;
 }
 .messagebox .sendbox{
-  height: 100px;
+  height: 130px;
   bottom: 0;
   right: 0;
   position: absolute;
@@ -610,6 +649,7 @@ cursor: pointer;
 .messagebox .sendbox .btns{
   height: 30px;
   display: flex;
+  padding-left: 8px;
 }
 .messagebox .sendbox .btns span{
   display: block;
@@ -635,8 +675,8 @@ cursor: pointer;
   padding: 0 15px 15px 15px;
   resize: none;
 }
+
 .messagebox .btn-sub{
-  margin: 0 auto;
   display: block;
    width: 68px;
   height: 30px;
@@ -647,13 +687,29 @@ cursor: pointer;
   background: #33C8DF;
   cursor: pointer;
   border-radius: 4px;
+  margin-right: 20px;
+  border: 1px solid #33C8DF;
 }
-.dialog-content .btn-sub{
-  margin-top: 40px;
+.messagebox .sendbox .btn-sub{
+  margin: 50px auto;
 }
-.common-message .dialog-box .btn-sub{
-  margin: 24px auto;
+.messagebox .btn-sub.auto{
+  margin: 10px auto 0 auto;
 }
+.messagebox .btn-sub.btn-cancel{
+  background: #fff;
+  color: #33C8DF;
+}
+.messagebox .btn-sub:hover{
+  box-shadow: 0px 0px 3px 0px #33C8DF;
+}
+.messagebox .dialog-content .btns{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 24px;
+}
+
 
 .common-message .dialog-box .custom-tel{
   font-size: 12px;
@@ -663,14 +719,14 @@ text-align: center;
 .messagebox .btn-sub.sub{
   position: absolute;
   z-index: 9;
-  right: 10px;
-  bottom: 10px;
+  right: 5px;
+  bottom: 5px;
 }
 .messagebox .meslist{
   position: absolute;
   width: 100%;
-  top: 50px;
-  bottom:100px;
+  top: 44px;
+  bottom:130px;
   overflow-y: auto;
   background: #fff;
 }
@@ -781,7 +837,7 @@ margin: 0 auto;
   justify-content: center;
 }
 .messagebox .meslist .item.system .systembox p{
-  background: #E7E7E7;
+  background: #f5f5f5;
 border-radius: 4px;
 border-radius: 4px;
 padding: 5px 6px;

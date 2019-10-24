@@ -3,7 +3,7 @@
 /*eslint-disable*/ 
 // http://10.1.29.120:8105  10.1.2.70,
 // http://wxkf.5ifapiao.com:8888
-
+const hostUrl = 'http://test.5ifapiao.com:8888'
 let pageProxy = {
 	// '/fatsapi/fats-expert/login-expert/getIMById': {
  //    target: 'http://10.1.2.70:8105',
@@ -11,9 +11,14 @@ let pageProxy = {
  //    pathRewrite: { '^/fatsapi/fats-expert/login-expert/getIMById': '/login-expert/getIMById' },
  //  },
   '/fatsapi/fats-expert': {
-    target: 'http://test.5ifapiao.com:8888/',
+    target: hostUrl,
     changeOrigin: true,
     pathRewrite: { '^/fatsapi/fats-expert': '/fatsapi/fats-expert' },
+  },
+  '/api-gateway': {
+    target: hostUrl,
+    changeOrigin: true,
+    pathRewrite: { '^/api-gateway': '/api-gateway' },
   },
   
 };
