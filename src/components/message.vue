@@ -7,14 +7,14 @@
       <template v-if="isShowMessage">
 
         <div class="headerbox">
-          <span class="title">{{curTargetUserData.name}}</span>
+          <span v-show="curTargetUserData.name" class="title">{{curTargetUserData.name}}</span>
           <span @click="hideMessage()" class="close"></span>
            <!-- 结束 -->
           <el-popover
           placement="left"
           width="168"
           v-model="closeCofirmBox"
-          trigger="click">
+          trigger="manual">
           <div class="close-confirm-box">
             <p>确定要结束咨询吗？</p>
             <div class="btnbox">
@@ -22,12 +22,13 @@
               <span @click="endEvaluateFn()" class="sub">确定</span>
             </div>
           </div>
-          <span slot="reference"
-          class="icon-close">结束咨询</span>
+          <span @click="closeCofirmBox=!hidemask;" slot="reference"
+          class="icon-close" :class="{off:hidemask}">结束咨询</span>
           </el-popover>
         </div>
       <!-- 聊天展示区域 -->
       <div id="meslist"
+      @scroll="getHistoryMessageListSrollLoad($event)"
       class="meslist common-scroll-bar">
 
 
@@ -45,7 +46,7 @@
         <template v-if="mesListData[0].list.length>0">
         <div v-for="(item,index) in mesListData[0].list"
         :data="item.fromUserId"
-        class="item"
+        class="item meslistItem"
         :class="[
           {on:item.senderUserId==userId || item.fromUserId==userId},
           {system:item.objectName == 'RC:InfoNtf'},
@@ -209,7 +210,7 @@
             ></el-input>
             </div>
             <div class="btns">
-              <span @click="hideMessage()" class="btn-sub btn-cancel">取消</span>
+              <span @click="dialogQuestion=false;" class="btn-sub btn-cancel">取消</span>
               <span @click="getExpertQuestionFn()" class="btn-sub">发送</span>
             </div>
           </div>
@@ -389,6 +390,9 @@ export default message;
   color: #fff;
   text-align: center;
   line-height: 27px;
+}
+.icon-close.off{
+  background: #ccc;
 }
 /* .icon-close:hover{
   opacity: 0.1;

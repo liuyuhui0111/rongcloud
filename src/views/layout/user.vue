@@ -34,9 +34,8 @@ export default {
   data() {
     return {
       params: {
-        accnout: '13311110000',
-        accnoutId: '13311110000',
-        account: '13311110000',
+        accnout: '13244445555',
+        accnoutId: '1000000098',
         channelFrom: 1624,
         companyLocation: 'http://test.5ifapiao.com:8888/course-110102019#/index?',
         distributorId: '30c59a46658b4c8e91385e0dae5ffa65',
@@ -45,9 +44,10 @@ export default {
         fromName: '优税学院',
         host: 'http://test.5ifapiao.com:8888',
         icon: 'https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=1372494972,1692060958&fm=26&gp=0.jpg',
-        id: '13311110000',
-        name: '13311110000',
-        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlIjoibWFkZSBieSBoZWF2ZW4iLCJ1c2VyX25hbWUiOiIxMzAxMDEwMTAxMVBQIiwic2NvcGUiOlsic2VydmVyIl0sInVzZXJUeXBlIjoiUCIsImV4cCI6MTU3MTgzNTk5NywidXNlcklkIjoxMDAwMDAwMDkwLCJhdXRob3JpdGllcyI6WyJST0xFX1VTRVIiXSwianRpIjoiNGJmOWI4NTgtNTU0Mi00MTAzLTgxNTktZGEyYWEwYWQ0MDYzIiwiY2xpZW50X2lkIjoiZmF0YyJ9.olAgjtfpMXdG0lWiaHyat_hNOfhfo-24BQImsQzTBxw',
+        id: '13244445555',
+        name: '13244445555',
+        type: '1', // 不走分类流程
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlIjoibWFkZSBieSBoZWF2ZW4iLCJ1c2VyX25hbWUiOiIxMzExMDMxMTAzMVBQIiwic2NvcGUiOlsic2VydmVyIl0sInVzZXJUeXBlIjoiUCIsImV4cCI6MTU3MjUyNjE1NCwidXNlcklkIjoxMDAwMDAwMTAzLCJhdXRob3JpdGllcyI6WyJST0xFX1VTRVIiXSwianRpIjoiZWUxMTU1YjEtMTEwZS00MTMxLWE0OTItMmFmOTdiM2NmZGM2IiwiY2xpZW50X2lkIjoiZmF0YyJ9.8lAY5Wmr6-nuRD7gNnY6bknAzqMjZsKadr6in7VlCmE',
       },
       isShowMessage: true,
     };

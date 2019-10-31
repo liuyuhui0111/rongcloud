@@ -23,10 +23,7 @@
     }
     if(!document.getElementById(COMMONID)){
       // 还没有初始化
-      if(document.getElementById(COMMONID).style.display === 'block'){
-        document.getElementById(COMMONID).style.display = 'none';
-        return;
-      }
+      
       var timer = setInterval(function(){
         if(document.getElementById(COMMONID)){
           clearInterval(timer);
@@ -34,6 +31,11 @@
         }
       },500)
     }else{
+      if(document.getElementById(COMMONID).style.display === 'block'){
+        // 如果当前窗口是唤起的状态  返回 不做操作
+        // document.getElementById(COMMONID).style.display = 'none';
+        return;
+      }
       sendMessage();
     }
 

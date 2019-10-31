@@ -16,7 +16,8 @@ let COMMON_ENV = {
 if (process.env.VUE_APP_ENV === 'production') {
 	// 生产环境
   COMMON_ENV.SSO_URL = 'https://efats.utax360.cn';
-  COMMON_ENV.appkey = 'y745wfm8yq6av'; //融云appkey
+	COMMON_ENV.appkey = 'y745wfm8yq6av'; //融云appkey
+	COMMON_ENV.sensors.server_url = 'http://101.124.5.238:8106/sa?project=production'
 } else if (process.env.VUE_APP_ENV === 'pre') {
 	// 预发环境
 	// COMMON_ENV.SSO_URL = 'http://apptest.5ifapiao.com';

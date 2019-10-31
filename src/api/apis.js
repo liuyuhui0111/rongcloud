@@ -183,5 +183,12 @@ export function downloadinfo() {
   // 获取版本号
   const url = '/api-gateway/product/aosp-product/product/downloadInfo';
 
-  return axios.get(url, { params: { id: '4dcf25b4eda74b8f845cb7cd731df07f' } });
+  return axios.get(url, { params: { id: '4dcf25b4eda74b8f845cb7cd731df07f' }, isnotoken: true });
+}
+
+export function getMsgListByUserId(params) {
+  // 根据userId查询聊天记录
+  const url = '/home/getMsgListByUserId';
+
+  return axios.get(BASE_URL + url, { params });
 }

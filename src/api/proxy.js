@@ -10,6 +10,7 @@ let pageProxy = {
  //    changeOrigin: true,
  //    pathRewrite: { '^/fatsapi/fats-expert/login-expert/getIMById': '/login-expert/getIMById' },
  //  },
+ 
   '/fatsapi/fats-expert': {
     target: hostUrl,
     changeOrigin: true,

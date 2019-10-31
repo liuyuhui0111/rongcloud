@@ -21,7 +21,7 @@ module.exports = {
       proxy,
     },
     // 生产环境是否需要sourcemap
-    productionSourceMap:false,
+    productionSourceMap:true,
     chainWebpack: config => {
       // 移除 prefetch 插件
       config.plugins.delete('prefetch');
